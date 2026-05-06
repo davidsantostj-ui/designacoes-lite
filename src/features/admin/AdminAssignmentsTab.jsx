@@ -814,9 +814,15 @@ const AdminAssignmentsTab = ({
                         <button
                           type="button"
                           onClick={() => handleInlineParticipantEdit(assignment)}
-                          className="text-sm font-semibold text-blue-600 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300 transition-colors text-left"
+                          className={`text-sm font-semibold transition-colors text-left ${
+                            assignment.usuario_id
+                              ? 'text-blue-600 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300'
+                              : 'text-orange-600 hover:text-orange-700 dark:text-orange-400 dark:hover:text-orange-300'
+                          }`}
                         >
-                          {getUserDisplayName(assignedUser)}
+                          {assignment.usuario_id
+                            ? getUserDisplayName(assignedUser)
+                            : assignment.participant_name || 'Não definido'}
                         </button>
                         {assignment.source === 'meeting_import' && (
                           <p className="text-[11px] font-semibold text-violet-600">

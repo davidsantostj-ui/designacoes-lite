@@ -167,26 +167,12 @@ const AdminAutoAssignmentsTab = ({
               </div>
 
               {hasMeetingTypesSelected && (
-                <label className="flex items-start gap-3 rounded-[20px] border border-violet-200 bg-violet-50 p-3 text-sm text-violet-800">
-                  <input
-                    type="checkbox"
-                    checked={autoAssignForm.publishToMeetings === true}
-                    onChange={(event) =>
-                      setAutoAssignForm((prev) => ({
-                        ...prev,
-                        publishToMeetings: event.target.checked
-                      }))
-                    }
-                    className="mt-0.5 h-4 w-4 rounded border-violet-300 text-violet-600 focus:ring-violet-500"
-                  />
-                  <span>
-                    <span className="block font-black">Mostrar também em Reuniões</span>
-                    <span className="mt-1 block text-[11px] leading-snug text-violet-700">
-                      Tipos de meio de semana salvos neste lote também aparecerão na página
-                      Reuniões.
-                    </span>
-                  </span>
-                </label>
+                <div className="rounded-[20px] border border-violet-200 bg-violet-50 p-3 text-sm text-violet-800">
+                  <p className="font-black">✓ Sincronização automática com Reuniões</p>
+                  <p className="text-[11px] leading-snug text-violet-700 mt-1">
+                    Tipos de meio de semana selecionados aparecerão automaticamente na página Reuniões.
+                  </p>
+                </div>
               )}
 
               {ASSIGNMENT_TYPE_GROUPS.map((group) => (
@@ -197,19 +183,31 @@ const AdminAutoAssignmentsTab = ({
                         {group.label}
                       </p>
                       <p className="text-[11px] text-slate-500 dark:text-slate-300">
-                        Selecione somente as funções que quer distribuir neste lote.
+                        {group.types.length} função(ões) disponível(is)
                       </p>
                     </div>
-                    <button
-                      type="button"
-                      onClick={() => applyTypePreset(group.types)}
-                      className="text-[10px] font-black uppercase tracking-widest text-blue-600"
-                    >
-                      Marcar grupo
-                    </button>
+                    <div className="flex gap-2">
+                      <button
+                        type="button"
+                        onClick={() => applyTypePreset(group.types)}
+                        className="text-[10px] font-black uppercase tracking-widest text-blue-600 hover:text-blue-700 transition-colors"
+                      >
+                        Marcar
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          const selected = autoAssignForm.selectedTypes.filter(t => !group.types.includes(t));
+                          setAutoAssignForm((prev) => ({ ...prev, selectedTypes: selected }));
+                        }}
+                        className="text-[10px] font-black uppercase tracking-widest text-slate-400 hover:text-slate-600 transition-colors"
+                      >
+                        Desmarcar
+                      </button>
+                    </div>
                   </div>
 
-                  <div className="mt-3 grid gap-2 sm:grid-cols-2">
+                  <div className="mt-3 flex flex-wrap gap-2">
                     {group.types.map((type) => {
                       const checked = selectedTypesSet.has(type);
                       return (
@@ -217,13 +215,13 @@ const AdminAutoAssignmentsTab = ({
                           key={type}
                           type="button"
                           onClick={() => toggleType(type)}
-                          className={`rounded-2xl border px-3 py-3 text-left transition-all ${
+                          className={`rounded-xl px-3 py-2 text-xs font-bold transition-all ${
                             checked
-                              ? 'border-emerald-200 bg-emerald-50 text-emerald-700'
-                              : 'border-slate-200 bg-white text-slate-600 dark:border-slate-700 dark:bg-navy-800 dark:text-slate-300'
+                              ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-300'
+                              : 'bg-white text-slate-600 border border-slate-200 dark:border-slate-700 dark:bg-navy-800 dark:text-slate-300'
                           }`}
                         >
-                          <span className="text-sm font-black">{type}</span>
+                          {type}
                         </button>
                       );
                     })}

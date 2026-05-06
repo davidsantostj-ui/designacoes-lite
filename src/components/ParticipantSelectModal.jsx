@@ -64,7 +64,7 @@ const ParticipantSelectModal = ({
       saveRecentExternalName(otherName.trim());
       setRecentExternalNames(getRecentExternalNames());
       onSelect({
-        usuario_id: '',
+        usuario_id: null,
         participant_name: otherName.trim()
       });
       handleClose();
