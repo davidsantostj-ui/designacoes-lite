@@ -1,0 +1,689 @@
+[33mThe CJS build of Vite's Node API is deprecated. See https://vite.dev/guide/troubleshooting.html#vite-cjs-node-api-deprecated for more details.[39m
+[2m13:22:28[22m [31m[1m[vite][22m[39m [31mInternal server error: C:\Minhas Designações\src\App.jsx: Identifier 'isAdmin' has already been declared. (3893:8)
+
+[0m [90m 3891 |[31m     data[33m.[31musers[33m.[31mfind((u) [33m=>[31m u[33m.[31mid [33m===[31m adminUserId) [33m||[31m
+ [90m 3892 |[31m     (adminUserId [33m===[31m user[33m?[31m[33m.[31mid [33m?[31m user [33m:[31m originalAdmin)[33m;[31m
+[31m[1m>[22m[31m[90m 3893 |[31m   [36mconst[31m isAdmin [33m=[31m [33mBoolean[31m(
+ [90m      |[31m         [31m[1m^[22m[31m
+ [90m 3894 |[31m     hasAdminAccess [33m||[31m (adminUser [33m&&[31m (adminUser[33m.[31misAdmin [33m||[31m isAdminUid(adminUser[33m.[31mid)))
+ [90m 3895 |[31m   )[33m;[31m
+ [90m 3896 |[31m   [36mconst[31m isRealAdmin [33m=[31m isAdmin [33m&&[31m [33m![31misImpersonating[33m;[31m[0m[39m
+  Plugin: [35mvite:react-babel[39m
+  File: [36mC:/Minhas Designações/src/App.jsx[39m:3893:8
+[33m  3929|              }
+  3930|            });
+  3931|            if (Object.keys(changes).length > 0) {
+     |                            ^
+  3932|              queueUpdate(collectionName, item.id, changes);
+  3933|            }[39m
+      at constructor (c:\Minhas Designações\node_modules\@babel\parser\lib\index.js:365:19)
+      at JSXParserMixin.raise (c:\Minhas Designações\node_modules\@babel\parser\lib\index.js:6599:19)
+      at ScopeHandler.checkRedeclarationInScope (c:\Minhas Designações\node_modules\@babel\parser\lib\index.js:1619:19)
+      at ScopeHandler.declareName (c:\Minhas Designações\node_modules\@babel\parser\lib\index.js:1585:12)
+      at JSXParserMixin.declareNameFromIdentifier (c:\Minhas Designações\node_modules\@babel\parser\lib\index.js:7567:16)
+      at JSXParserMixin.checkIdentifier (c:\Minhas Designações\node_modules\@babel\parser\lib\index.js:7563:12)
+      at JSXParserMixin.checkLVal (c:\Minhas Designações\node_modules\@babel\parser\lib\index.js:7500:12)
+      at JSXParserMixin.parseVarId (c:\Minhas Designações\node_modules\@babel\parser\lib\index.js:13412:10)
+      at JSXParserMixin.parseVar (c:\Minhas Designações\node_modules\@babel\parser\lib\index.js:13383:12)
+      at JSXParserMixin.parseVarStatement (c:\Minhas Designações\node_modules\@babel\parser\lib\index.js:13230:10)
+      at JSXParserMixin.parseStatementContent (c:\Minhas Designações\node_modules\@babel\parser\lib\index.js:12851:23)
+      at JSXParserMixin.parseStatementLike (c:\Minhas Designações\node_modules\@babel\parser\lib\index.js:12767:17)
+      at JSXParserMixin.parseStatementListItem (c:\Minhas Designações\node_modules\@babel\parser\lib\index.js:12747:17)
+      at JSXParserMixin.parseBlockOrModuleBlockBody (c:\Minhas Designações\node_modules\@babel\parser\lib\index.js:13316:61)
+      at JSXParserMixin.parseBlockBody (c:\Minhas Designações\node_modules\@babel\parser\lib\index.js:13309:10)
+      at JSXParserMixin.parseBlock (c:\Minhas Designações\node_modules\@babel\parser\lib\index.js:13297:10)
+      at JSXParserMixin.parseFunctionBody (c:\Minhas Designações\node_modules\@babel\parser\lib\index.js:12100:24)
+      at JSXParserMixin.parseArrowExpression (c:\Minhas Designações\node_modules\@babel\parser\lib\index.js:12075:10)
+      at JSXParserMixin.parseParenAndDistinguishExpression (c:\Minhas Designações\node_modules\@babel\parser\lib\index.js:11687:12)
+      at JSXParserMixin.parseExprAtom (c:\Minhas Designações\node_modules\@babel\parser\lib\index.js:11331:23)
+      at JSXParserMixin.parseExprAtom (c:\Minhas Designações\node_modules\@babel\parser\lib\index.js:4764:20)
+      at JSXParserMixin.parseExprSubscripts (c:\Minhas Designações\node_modules\@babel\parser\lib\index.js:11081:23)
+      at JSXParserMixin.parseUpdate (c:\Minhas Designações\node_modules\@babel\parser\lib\index.js:11066:21)
+      at JSXParserMixin.parseMaybeUnary (c:\Minhas Designações\node_modules\@babel\parser\lib\index.js:11046:23)
+      at JSXParserMixin.parseMaybeUnaryOrPrivate (c:\Minhas Designações\node_modules\@babel\parser\lib\index.js:10899:61)
+      at JSXParserMixin.parseExprOps (c:\Minhas Designações\node_modules\@babel\parser\lib\index.js:10904:23)
+      at JSXParserMixin.parseMaybeConditional (c:\Minhas Designações\node_modules\@babel\parser\lib\index.js:10881:23)
+      at JSXParserMixin.parseMaybeAssign (c:\Minhas Designações\node_modules\@babel\parser\lib\index.js:10831:21)
+      at c:\Minhas Designações\node_modules\@babel\parser\lib\index.js:10800:39
+      at JSXParserMixin.allowInAnd (c:\Minhas Designações\node_modules\@babel\parser\lib\index.js:12421:16)
+      at JSXParserMixin.parseMaybeAssignAllowIn (c:\Minhas Designações\node_modules\@babel\parser\lib\index.js:10800:17)
+      at JSXParserMixin.parseVar (c:\Minhas Designações\node_modules\@babel\parser\lib\index.js:13384:91)
+      at JSXParserMixin.parseVarStatement (c:\Minhas Designações\node_modules\@babel\parser\lib\index.js:13230:10)
+      at JSXParserMixin.parseStatementContent (c:\Minhas Designações\node_modules\@babel\parser\lib\index.js:12851:23)
+      at JSXParserMixin.parseStatementLike (c:\Minhas Designações\node_modules\@babel\parser\lib\index.js:12767:17)
+      at JSXParserMixin.parseModuleItem (c:\Minhas Designações\node_modules\@babel\parser\lib\index.js:12744:17)
+      at JSXParserMixin.parseBlockOrModuleBlockBody (c:\Minhas Designações\node_modules\@babel\parser\lib\index.js:13316:36)
+      at JSXParserMixin.parseBlockBody (c:\Minhas Designações\node_modules\@babel\parser\lib\index.js:13309:10)
+      at JSXParserMixin.parseProgram (c:\Minhas Designações\node_modules\@babel\parser\lib\index.js:12622:10)
+      at JSXParserMixin.parseTopLevel (c:\Minhas Designações\node_modules\@babel\parser\lib\index.js:12612:25)
+      at JSXParserMixin.parse (c:\Minhas Designações\node_modules\@babel\parser\lib\index.js:14488:25)
+      at parse (c:\Minhas Designações\node_modules\@babel\parser\lib\index.js:14522:38)
+      at parser (c:\Minhas Designações\node_modules\@babel\core\lib\parser\index.js:41:34)
+      at parser.next (<anonymous>)
+      at normalizeFile (c:\Minhas Designações\node_modules\@babel\core\lib\transformation\normalize-file.js:64:37)
+      at normalizeFile.next (<anonymous>)
+      at run (c:\Minhas Designações\node_modules\@babel\core\lib\transformation\index.js:22:50)
+      at run.next (<anonymous>)
+      at transform (c:\Minhas Designações\node_modules\@babel\core\lib\transform.js:22:33)
+      at transform.next (<anonymous>)
+[2m13:37:24[22m [31m[1m[vite][22m[39m [31mInternal server error: C:\Minhas Designações\src\App.jsx: Identifier 'cleanupMonthLabel' has already been declared. (4008:8)
+
+[0m [90m 4006 |[31m   }[33m,[31m [handleRefreshData[33m,[31m isRefreshingAll[33m,[31m refreshDashboardCounters])[33m;[31m
+ [90m 4007 |[31m
+[31m[1m>[22m[31m[90m 4008 |[31m   [36mconst[31m cleanupMonthLabel [33m=[31m useMemo(() [33m=>[31m {
+ [90m      |[31m         [31m[1m^[22m[31m
+ [90m 4009 |[31m     [36mconst[31m now [33m=[31m [36mnew[31m [33mDate[31m()[33m;[31m
+ [90m 4010 |[31m     [36mreturn[31m now[33m.[31mtoLocaleDateString([32m'pt-BR'[31m[33m,[31m { month[33m:[31m [32m'long'[31m[33m,[31m year[33m:[31m [32m'numeric'[31m })[33m;[31m
+ [90m 4011 |[31m   }[33m,[31m [])[33m;[31m[0m[39m
+  Plugin: [35mvite:react-babel[39m
+  File: [36mC:/Minhas Designações/src/App.jsx[39m:4008:8
+[33m  4041|            addToast(`Limpeza mensal concluída (${total}).`, 'success');
+  4042|          }
+  4043|        } catch (e) {
+     |   ^
+  4044|          addToast('Erro ao registrar limpeza mensal.', 'error');
+  4045|        }[39m
+      at constructor (c:\Minhas Designações\node_modules\@babel\parser\lib\index.js:365:19)
+      at JSXParserMixin.raise (c:\Minhas Designações\node_modules\@babel\parser\lib\index.js:6599:19)
+      at ScopeHandler.checkRedeclarationInScope (c:\Minhas Designações\node_modules\@babel\parser\lib\index.js:1619:19)
+      at ScopeHandler.declareName (c:\Minhas Designações\node_modules\@babel\parser\lib\index.js:1585:12)
+      at JSXParserMixin.declareNameFromIdentifier (c:\Minhas Designações\node_modules\@babel\parser\lib\index.js:7567:16)
+      at JSXParserMixin.checkIdentifier (c:\Minhas Designações\node_modules\@babel\parser\lib\index.js:7563:12)
+      at JSXParserMixin.checkLVal (c:\Minhas Designações\node_modules\@babel\parser\lib\index.js:7500:12)
+      at JSXParserMixin.parseVarId (c:\Minhas Designações\node_modules\@babel\parser\lib\index.js:13412:10)
+      at JSXParserMixin.parseVar (c:\Minhas Designações\node_modules\@babel\parser\lib\index.js:13383:12)
+      at JSXParserMixin.parseVarStatement (c:\Minhas Designações\node_modules\@babel\parser\lib\index.js:13230:10)
+      at JSXParserMixin.parseStatementContent (c:\Minhas Designações\node_modules\@babel\parser\lib\index.js:12851:23)
+      at JSXParserMixin.parseStatementLike (c:\Minhas Designações\node_modules\@babel\parser\lib\index.js:12767:17)
+      at JSXParserMixin.parseStatementListItem (c:\Minhas Designações\node_modules\@babel\parser\lib\index.js:12747:17)
+      at JSXParserMixin.parseBlockOrModuleBlockBody (c:\Minhas Designações\node_modules\@babel\parser\lib\index.js:13316:61)
+      at JSXParserMixin.parseBlockBody (c:\Minhas Designações\node_modules\@babel\parser\lib\index.js:13309:10)
+      at JSXParserMixin.parseBlock (c:\Minhas Designações\node_modules\@babel\parser\lib\index.js:13297:10)
+      at JSXParserMixin.parseFunctionBody (c:\Minhas Designações\node_modules\@babel\parser\lib\index.js:12100:24)
+      at JSXParserMixin.parseArrowExpression (c:\Minhas Designações\node_modules\@babel\parser\lib\index.js:12075:10)
+      at JSXParserMixin.parseParenAndDistinguishExpression (c:\Minhas Designações\node_modules\@babel\parser\lib\index.js:11687:12)
+      at JSXParserMixin.parseExprAtom (c:\Minhas Designações\node_modules\@babel\parser\lib\index.js:11331:23)
+      at JSXParserMixin.parseExprAtom (c:\Minhas Designações\node_modules\@babel\parser\lib\index.js:4764:20)
+      at JSXParserMixin.parseExprSubscripts (c:\Minhas Designações\node_modules\@babel\parser\lib\index.js:11081:23)
+      at JSXParserMixin.parseUpdate (c:\Minhas Designações\node_modules\@babel\parser\lib\index.js:11066:21)
+      at JSXParserMixin.parseMaybeUnary (c:\Minhas Designações\node_modules\@babel\parser\lib\index.js:11046:23)
+      at JSXParserMixin.parseMaybeUnaryOrPrivate (c:\Minhas Designações\node_modules\@babel\parser\lib\index.js:10899:61)
+      at JSXParserMixin.parseExprOps (c:\Minhas Designações\node_modules\@babel\parser\lib\index.js:10904:23)
+      at JSXParserMixin.parseMaybeConditional (c:\Minhas Designações\node_modules\@babel\parser\lib\index.js:10881:23)
+      at JSXParserMixin.parseMaybeAssign (c:\Minhas Designações\node_modules\@babel\parser\lib\index.js:10831:21)
+      at c:\Minhas Designações\node_modules\@babel\parser\lib\index.js:10800:39
+      at JSXParserMixin.allowInAnd (c:\Minhas Designações\node_modules\@babel\parser\lib\index.js:12421:16)
+      at JSXParserMixin.parseMaybeAssignAllowIn (c:\Minhas Designações\node_modules\@babel\parser\lib\index.js:10800:17)
+      at JSXParserMixin.parseVar (c:\Minhas Designações\node_modules\@babel\parser\lib\index.js:13384:91)
+      at JSXParserMixin.parseVarStatement (c:\Minhas Designações\node_modules\@babel\parser\lib\index.js:13230:10)
+      at JSXParserMixin.parseStatementContent (c:\Minhas Designações\node_modules\@babel\parser\lib\index.js:12851:23)
+      at JSXParserMixin.parseStatementLike (c:\Minhas Designações\node_modules\@babel\parser\lib\index.js:12767:17)
+      at JSXParserMixin.parseModuleItem (c:\Minhas Designações\node_modules\@babel\parser\lib\index.js:12744:17)
+      at JSXParserMixin.parseBlockOrModuleBlockBody (c:\Minhas Designações\node_modules\@babel\parser\lib\index.js:13316:36)
+      at JSXParserMixin.parseBlockBody (c:\Minhas Designações\node_modules\@babel\parser\lib\index.js:13309:10)
+      at JSXParserMixin.parseProgram (c:\Minhas Designações\node_modules\@babel\parser\lib\index.js:12622:10)
+      at JSXParserMixin.parseTopLevel (c:\Minhas Designações\node_modules\@babel\parser\lib\index.js:12612:25)
+      at JSXParserMixin.parse (c:\Minhas Designações\node_modules\@babel\parser\lib\index.js:14488:25)
+      at parse (c:\Minhas Designações\node_modules\@babel\parser\lib\index.js:14522:38)
+      at parser (c:\Minhas Designações\node_modules\@babel\core\lib\parser\index.js:41:34)
+      at parser.next (<anonymous>)
+      at normalizeFile (c:\Minhas Designações\node_modules\@babel\core\lib\transformation\normalize-file.js:64:37)
+      at normalizeFile.next (<anonymous>)
+      at run (c:\Minhas Designações\node_modules\@babel\core\lib\transformation\index.js:22:50)
+      at run.next (<anonymous>)
+      at transform (c:\Minhas Designações\node_modules\@babel\core\lib\transform.js:22:33)
+      at transform.next (<anonymous>)
+[2m13:42:12[22m [31m[1m[vite][22m[39m [31mInternal server error: EBUSY: resource busy or locked, open 'C:\Minhas Designações\src\App.jsx'[39m
+      at async open (node:internal/fs/promises:642:25)
+      at async Object.readFile (node:internal/fs/promises:1279:14)
+      at async loadAndTransform (file:///c:/Minhas%20Designa%C3%A7%C3%B5es/node_modules/vite/dist/node/chunks/dep-BK3b2jBa.js:51925:16)
+      at async viteTransformMiddleware (file:///c:/Minhas%20Designa%C3%A7%C3%B5es/node_modules/vite/dist/node/chunks/dep-BK3b2jBa.js:62106:24)
+[2m13:42:12[22m [31m[1m[vite][22m[39m [31mInternal server error: [postcss] EBUSY: resource busy or locked, open 'c:\Minhas Designações\src\App.jsx'[39m
+  Plugin: [35mvite:css[39m
+  File: [36mC:/Minhas Designações/src/index.css[39m:undefined:NaN
+      at async open (node:internal/fs/promises:642:25)
+      at async Object.readFile (node:internal/fs/promises:1279:14)
+      at async c:\Minhas Designações\node_modules\tailwindcss\lib\lib\expandTailwindAtRules.js:173:34
+      at async Promise.all (index 0)
+      at async c:\Minhas Designações\node_modules\tailwindcss\lib\lib\expandTailwindAtRules.js:172:13
+      at async c:\Minhas Designações\node_modules\tailwindcss\lib\processTailwindFeatures.js:51:9
+      at async plugins (c:\Minhas Designações\node_modules\tailwindcss\lib\plugin.js:38:17)
+      at async LazyResult.runAsync (c:\Minhas Designações\node_modules\postcss\lib\lazy-result.js:293:11)
+      at async compileCSS (file:///c:/Minhas%20Designa%C3%A7%C3%B5es/node_modules/vite/dist/node/chunks/dep-BK3b2jBa.js:36898:21)
+      at async TransformPluginContext.transform (file:///c:/Minhas%20Designa%C3%A7%C3%B5es/node_modules/vite/dist/node/chunks/dep-BK3b2jBa.js:36171:11)
+      at async PluginContainer.transform (file:///c:/Minhas%20Designa%C3%A7%C3%B5es/node_modules/vite/dist/node/chunks/dep-BK3b2jBa.js:49099:18)
+      at async loadAndTransform (file:///c:/Minhas%20Designa%C3%A7%C3%B5es/node_modules/vite/dist/node/chunks/dep-BK3b2jBa.js:51978:27)
+      at async viteTransformMiddleware (file:///c:/Minhas%20Designa%C3%A7%C3%B5es/node_modules/vite/dist/node/chunks/dep-BK3b2jBa.js:62106:24)
+[2m14:05:37[22m [31m[1m[vite][22m[39m [31mInternal server error: C:\Minhas Designações\src\App.jsx: Identifier 'setLastMeetingsImportResult' has already been declared. (721:4)
+
+[0m [90m 719 |[31m     isWipingMeetingsData[33m,[31m
+ [90m 720 |[31m     latestMeetingsImportBatch[33m,[31m
+[31m[1m>[22m[31m[90m 721 |[31m     setLastMeetingsImportResult
+ [90m     |[31m     [31m[1m^[22m[31m
+ [90m 722 |[31m   } [33m=[31m useMeetingsBatchActions({
+ [90m 723 |[31m     addToast[33m,[31m
+ [90m 724 |[31m     assignments[33m:[31m data[33m.[31massignments[33m,[31m[0m[39m
+  Plugin: [35mvite:react-babel[39m
+  File: [36mC:/Minhas Designações/src/App.jsx[39m:721:4
+[33m  744|  
+  745|    const handleUpdateMeetingsPreviewSection = useCallback((syncKey, sectionKey) => {
+  746|      const currentRow = (meetingsImportPreview.rows || []).find((row) => row.syncKey === syncKey);
+     |             ^
+  747|      const sectionMeta = getMeetingSectionMetaFromValue(sectionKey, currentRow?.designation || '');
+  748|      setMeetingsImportPreview((prev) => ({[39m
+      at constructor (c:\Minhas Designações\node_modules\@babel\parser\lib\index.js:365:19)
+      at JSXParserMixin.raise (c:\Minhas Designações\node_modules\@babel\parser\lib\index.js:6599:19)
+      at ScopeHandler.checkRedeclarationInScope (c:\Minhas Designações\node_modules\@babel\parser\lib\index.js:1619:19)
+      at ScopeHandler.declareName (c:\Minhas Designações\node_modules\@babel\parser\lib\index.js:1585:12)
+      at JSXParserMixin.declareNameFromIdentifier (c:\Minhas Designações\node_modules\@babel\parser\lib\index.js:7567:16)
+      at JSXParserMixin.checkIdentifier (c:\Minhas Designações\node_modules\@babel\parser\lib\index.js:7563:12)
+      at JSXParserMixin.checkLVal (c:\Minhas Designações\node_modules\@babel\parser\lib\index.js:7500:12)
+      at JSXParserMixin.checkLVal (c:\Minhas Designações\node_modules\@babel\parser\lib\index.js:7544:12)
+      at JSXParserMixin.checkLVal (c:\Minhas Designações\node_modules\@babel\parser\lib\index.js:7540:16)
+      at JSXParserMixin.parseVarId (c:\Minhas Designações\node_modules\@babel\parser\lib\index.js:13412:10)
+      at JSXParserMixin.parseVar (c:\Minhas Designações\node_modules\@babel\parser\lib\index.js:13383:12)
+      at JSXParserMixin.parseVarStatement (c:\Minhas Designações\node_modules\@babel\parser\lib\index.js:13230:10)
+      at JSXParserMixin.parseStatementContent (c:\Minhas Designações\node_modules\@babel\parser\lib\index.js:12851:23)
+      at JSXParserMixin.parseStatementLike (c:\Minhas Designações\node_modules\@babel\parser\lib\index.js:12767:17)
+      at JSXParserMixin.parseStatementListItem (c:\Minhas Designações\node_modules\@babel\parser\lib\index.js:12747:17)
+      at JSXParserMixin.parseBlockOrModuleBlockBody (c:\Minhas Designações\node_modules\@babel\parser\lib\index.js:13316:61)
+      at JSXParserMixin.parseBlockBody (c:\Minhas Designações\node_modules\@babel\parser\lib\index.js:13309:10)
+      at JSXParserMixin.parseBlock (c:\Minhas Designações\node_modules\@babel\parser\lib\index.js:13297:10)
+      at JSXParserMixin.parseFunctionBody (c:\Minhas Designações\node_modules\@babel\parser\lib\index.js:12100:24)
+      at JSXParserMixin.parseArrowExpression (c:\Minhas Designações\node_modules\@babel\parser\lib\index.js:12075:10)
+      at JSXParserMixin.parseParenAndDistinguishExpression (c:\Minhas Designações\node_modules\@babel\parser\lib\index.js:11687:12)
+      at JSXParserMixin.parseExprAtom (c:\Minhas Designações\node_modules\@babel\parser\lib\index.js:11331:23)
+      at JSXParserMixin.parseExprAtom (c:\Minhas Designações\node_modules\@babel\parser\lib\index.js:4764:20)
+      at JSXParserMixin.parseExprSubscripts (c:\Minhas Designações\node_modules\@babel\parser\lib\index.js:11081:23)
+      at JSXParserMixin.parseUpdate (c:\Minhas Designações\node_modules\@babel\parser\lib\index.js:11066:21)
+      at JSXParserMixin.parseMaybeUnary (c:\Minhas Designações\node_modules\@babel\parser\lib\index.js:11046:23)
+      at JSXParserMixin.parseMaybeUnaryOrPrivate (c:\Minhas Designações\node_modules\@babel\parser\lib\index.js:10899:61)
+      at JSXParserMixin.parseExprOps (c:\Minhas Designações\node_modules\@babel\parser\lib\index.js:10904:23)
+      at JSXParserMixin.parseMaybeConditional (c:\Minhas Designações\node_modules\@babel\parser\lib\index.js:10881:23)
+      at JSXParserMixin.parseMaybeAssign (c:\Minhas Designações\node_modules\@babel\parser\lib\index.js:10831:21)
+      at c:\Minhas Designações\node_modules\@babel\parser\lib\index.js:10800:39
+      at JSXParserMixin.allowInAnd (c:\Minhas Designações\node_modules\@babel\parser\lib\index.js:12421:16)
+      at JSXParserMixin.parseMaybeAssignAllowIn (c:\Minhas Designações\node_modules\@babel\parser\lib\index.js:10800:17)
+      at JSXParserMixin.parseVar (c:\Minhas Designações\node_modules\@babel\parser\lib\index.js:13384:91)
+      at JSXParserMixin.parseVarStatement (c:\Minhas Designações\node_modules\@babel\parser\lib\index.js:13230:10)
+      at JSXParserMixin.parseStatementContent (c:\Minhas Designações\node_modules\@babel\parser\lib\index.js:12851:23)
+      at JSXParserMixin.parseStatementLike (c:\Minhas Designações\node_modules\@babel\parser\lib\index.js:12767:17)
+      at JSXParserMixin.parseModuleItem (c:\Minhas Designações\node_modules\@babel\parser\lib\index.js:12744:17)
+      at JSXParserMixin.parseBlockOrModuleBlockBody (c:\Minhas Designações\node_modules\@babel\parser\lib\index.js:13316:36)
+      at JSXParserMixin.parseBlockBody (c:\Minhas Designações\node_modules\@babel\parser\lib\index.js:13309:10)
+      at JSXParserMixin.parseProgram (c:\Minhas Designações\node_modules\@babel\parser\lib\index.js:12622:10)
+      at JSXParserMixin.parseTopLevel (c:\Minhas Designações\node_modules\@babel\parser\lib\index.js:12612:25)
+      at JSXParserMixin.parse (c:\Minhas Designações\node_modules\@babel\parser\lib\index.js:14488:25)
+      at parse (c:\Minhas Designações\node_modules\@babel\parser\lib\index.js:14522:38)
+      at parser (c:\Minhas Designações\node_modules\@babel\core\lib\parser\index.js:41:34)
+      at parser.next (<anonymous>)
+      at normalizeFile (c:\Minhas Designações\node_modules\@babel\core\lib\transformation\normalize-file.js:64:37)
+      at normalizeFile.next (<anonymous>)
+      at run (c:\Minhas Designações\node_modules\@babel\core\lib\transformation\index.js:22:50)
+      at run.next (<anonymous>)
+[2m14:06:03[22m [31m[1m[vite][22m[39m [31mInternal server error: C:\Minhas Designações\src\App.jsx: Identifier 'handleUndoMeetingsImport' has already been declared. (2591:8)
+
+[0m [90m 2589 |[31m   ])[33m;[31m
+ [90m 2590 |[31m
+[31m[1m>[22m[31m[90m 2591 |[31m   [36mconst[31m handleUndoMeetingsImport [33m=[31m useCallback(
+ [90m      |[31m         [31m[1m^[22m[31m
+ [90m 2592 |[31m     [36masync[31m (batchId) [33m=>[31m {
+ [90m 2593 |[31m       [36mif[31m ([33m![31mbatchId [33m||[31m isUndoingMeetingsImport) [36mreturn[31m[33m;[31m
+ [90m 2594 |[31m       [36mif[31m ([0m[39m
+  Plugin: [35mvite:react-babel[39m
+  File: [36mC:/Minhas Designações/src/App.jsx[39m:2591:8
+[33m  2660|      try {
+  2661|        const [meetingsSnap, assignmentsSnap] = await Promise.all([
+  2662|          getDocs(collection(db, 'meetings')),
+     |             ^
+  2663|          getDocs(query(collection(db, 'assignments'), where('source', '==', 'meeting_import')))
+  2664|        ]);[39m
+      at constructor (c:\Minhas Designações\node_modules\@babel\parser\lib\index.js:365:19)
+      at JSXParserMixin.raise (c:\Minhas Designações\node_modules\@babel\parser\lib\index.js:6599:19)
+      at ScopeHandler.checkRedeclarationInScope (c:\Minhas Designações\node_modules\@babel\parser\lib\index.js:1619:19)
+      at ScopeHandler.declareName (c:\Minhas Designações\node_modules\@babel\parser\lib\index.js:1585:12)
+      at JSXParserMixin.declareNameFromIdentifier (c:\Minhas Designações\node_modules\@babel\parser\lib\index.js:7567:16)
+      at JSXParserMixin.checkIdentifier (c:\Minhas Designações\node_modules\@babel\parser\lib\index.js:7563:12)
+      at JSXParserMixin.checkLVal (c:\Minhas Designações\node_modules\@babel\parser\lib\index.js:7500:12)
+      at JSXParserMixin.parseVarId (c:\Minhas Designações\node_modules\@babel\parser\lib\index.js:13412:10)
+      at JSXParserMixin.parseVar (c:\Minhas Designações\node_modules\@babel\parser\lib\index.js:13383:12)
+      at JSXParserMixin.parseVarStatement (c:\Minhas Designações\node_modules\@babel\parser\lib\index.js:13230:10)
+      at JSXParserMixin.parseStatementContent (c:\Minhas Designações\node_modules\@babel\parser\lib\index.js:12851:23)
+      at JSXParserMixin.parseStatementLike (c:\Minhas Designações\node_modules\@babel\parser\lib\index.js:12767:17)
+      at JSXParserMixin.parseStatementListItem (c:\Minhas Designações\node_modules\@babel\parser\lib\index.js:12747:17)
+      at JSXParserMixin.parseBlockOrModuleBlockBody (c:\Minhas Designações\node_modules\@babel\parser\lib\index.js:13316:61)
+      at JSXParserMixin.parseBlockBody (c:\Minhas Designações\node_modules\@babel\parser\lib\index.js:13309:10)
+      at JSXParserMixin.parseBlock (c:\Minhas Designações\node_modules\@babel\parser\lib\index.js:13297:10)
+      at JSXParserMixin.parseFunctionBody (c:\Minhas Designações\node_modules\@babel\parser\lib\index.js:12100:24)
+      at JSXParserMixin.parseArrowExpression (c:\Minhas Designações\node_modules\@babel\parser\lib\index.js:12075:10)
+      at JSXParserMixin.parseParenAndDistinguishExpression (c:\Minhas Designações\node_modules\@babel\parser\lib\index.js:11687:12)
+      at JSXParserMixin.parseExprAtom (c:\Minhas Designações\node_modules\@babel\parser\lib\index.js:11331:23)
+      at JSXParserMixin.parseExprAtom (c:\Minhas Designações\node_modules\@babel\parser\lib\index.js:4764:20)
+      at JSXParserMixin.parseExprSubscripts (c:\Minhas Designações\node_modules\@babel\parser\lib\index.js:11081:23)
+      at JSXParserMixin.parseUpdate (c:\Minhas Designações\node_modules\@babel\parser\lib\index.js:11066:21)
+      at JSXParserMixin.parseMaybeUnary (c:\Minhas Designações\node_modules\@babel\parser\lib\index.js:11046:23)
+      at JSXParserMixin.parseMaybeUnaryOrPrivate (c:\Minhas Designações\node_modules\@babel\parser\lib\index.js:10899:61)
+      at JSXParserMixin.parseExprOps (c:\Minhas Designações\node_modules\@babel\parser\lib\index.js:10904:23)
+      at JSXParserMixin.parseMaybeConditional (c:\Minhas Designações\node_modules\@babel\parser\lib\index.js:10881:23)
+      at JSXParserMixin.parseMaybeAssign (c:\Minhas Designações\node_modules\@babel\parser\lib\index.js:10831:21)
+      at c:\Minhas Designações\node_modules\@babel\parser\lib\index.js:10800:39
+      at JSXParserMixin.allowInAnd (c:\Minhas Designações\node_modules\@babel\parser\lib\index.js:12421:16)
+      at JSXParserMixin.parseMaybeAssignAllowIn (c:\Minhas Designações\node_modules\@babel\parser\lib\index.js:10800:17)
+      at JSXParserMixin.parseVar (c:\Minhas Designações\node_modules\@babel\parser\lib\index.js:13384:91)
+      at JSXParserMixin.parseVarStatement (c:\Minhas Designações\node_modules\@babel\parser\lib\index.js:13230:10)
+      at JSXParserMixin.parseStatementContent (c:\Minhas Designações\node_modules\@babel\parser\lib\index.js:12851:23)
+      at JSXParserMixin.parseStatementLike (c:\Minhas Designações\node_modules\@babel\parser\lib\index.js:12767:17)
+      at JSXParserMixin.parseModuleItem (c:\Minhas Designações\node_modules\@babel\parser\lib\index.js:12744:17)
+      at JSXParserMixin.parseBlockOrModuleBlockBody (c:\Minhas Designações\node_modules\@babel\parser\lib\index.js:13316:36)
+      at JSXParserMixin.parseBlockBody (c:\Minhas Designações\node_modules\@babel\parser\lib\index.js:13309:10)
+      at JSXParserMixin.parseProgram (c:\Minhas Designações\node_modules\@babel\parser\lib\index.js:12622:10)
+      at JSXParserMixin.parseTopLevel (c:\Minhas Designações\node_modules\@babel\parser\lib\index.js:12612:25)
+      at JSXParserMixin.parse (c:\Minhas Designações\node_modules\@babel\parser\lib\index.js:14488:25)
+      at parse (c:\Minhas Designações\node_modules\@babel\parser\lib\index.js:14522:38)
+      at parser (c:\Minhas Designações\node_modules\@babel\core\lib\parser\index.js:41:34)
+      at parser.next (<anonymous>)
+      at normalizeFile (c:\Minhas Designações\node_modules\@babel\core\lib\transformation\normalize-file.js:64:37)
+      at normalizeFile.next (<anonymous>)
+      at run (c:\Minhas Designações\node_modules\@babel\core\lib\transformation\index.js:22:50)
+      at run.next (<anonymous>)
+      at transform (c:\Minhas Designações\node_modules\@babel\core\lib\transform.js:22:33)
+      at transform.next (<anonymous>)
+[2m14:07:19[22m [31m[1m[vite][22m[39m [31mInternal server error: C:\Minhas Designações\src\App.jsx: Identifier 'latestMeetingsImportBatch' has already been declared. (3837:8)
+
+[0m [90m 3835 |[31m   })[33m;[31m
+ [90m 3836 |[31m
+[31m[1m>[22m[31m[90m 3837 |[31m   [36mconst[31m latestMeetingsImportBatch [33m=[31m useMemo(() [33m=>[31m {
+ [90m      |[31m         [31m[1m^[22m[31m
+ [90m 3838 |[31m     [36mconst[31m batchMap [33m=[31m [36mnew[31m [33mMap[31m()[33m;[31m
+ [90m 3839 |[31m
+ [90m 3840 |[31m     (data[33m.[31mmeetings [33m||[31m [])[33m.[31mforEach((entry) [33m=>[31m {[0m[39m
+  Plugin: [35mvite:react-babel[39m
+  File: [36mC:/Minhas Designações/src/App.jsx[39m:3837:8
+[33m  3927|            Number(entry.designation_order || 999)
+  3928|          );
+  3929|          grouped.set(syncKey, current);
+     |    ^
+  3930|        });
+  3931|  [39m
+      at constructor (c:\Minhas Designações\node_modules\@babel\parser\lib\index.js:365:19)
+      at JSXParserMixin.raise (c:\Minhas Designações\node_modules\@babel\parser\lib\index.js:6599:19)
+      at ScopeHandler.checkRedeclarationInScope (c:\Minhas Designações\node_modules\@babel\parser\lib\index.js:1619:19)
+      at ScopeHandler.declareName (c:\Minhas Designações\node_modules\@babel\parser\lib\index.js:1585:12)
+      at JSXParserMixin.declareNameFromIdentifier (c:\Minhas Designações\node_modules\@babel\parser\lib\index.js:7567:16)
+      at JSXParserMixin.checkIdentifier (c:\Minhas Designações\node_modules\@babel\parser\lib\index.js:7563:12)
+      at JSXParserMixin.checkLVal (c:\Minhas Designações\node_modules\@babel\parser\lib\index.js:7500:12)
+      at JSXParserMixin.parseVarId (c:\Minhas Designações\node_modules\@babel\parser\lib\index.js:13412:10)
+      at JSXParserMixin.parseVar (c:\Minhas Designações\node_modules\@babel\parser\lib\index.js:13383:12)
+      at JSXParserMixin.parseVarStatement (c:\Minhas Designações\node_modules\@babel\parser\lib\index.js:13230:10)
+      at JSXParserMixin.parseStatementContent (c:\Minhas Designações\node_modules\@babel\parser\lib\index.js:12851:23)
+      at JSXParserMixin.parseStatementLike (c:\Minhas Designações\node_modules\@babel\parser\lib\index.js:12767:17)
+      at JSXParserMixin.parseStatementListItem (c:\Minhas Designações\node_modules\@babel\parser\lib\index.js:12747:17)
+      at JSXParserMixin.parseBlockOrModuleBlockBody (c:\Minhas Designações\node_modules\@babel\parser\lib\index.js:13316:61)
+      at JSXParserMixin.parseBlockBody (c:\Minhas Designações\node_modules\@babel\parser\lib\index.js:13309:10)
+      at JSXParserMixin.parseBlock (c:\Minhas Designações\node_modules\@babel\parser\lib\index.js:13297:10)
+      at JSXParserMixin.parseFunctionBody (c:\Minhas Designações\node_modules\@babel\parser\lib\index.js:12100:24)
+      at JSXParserMixin.parseArrowExpression (c:\Minhas Designações\node_modules\@babel\parser\lib\index.js:12075:10)
+      at JSXParserMixin.parseParenAndDistinguishExpression (c:\Minhas Designações\node_modules\@babel\parser\lib\index.js:11687:12)
+      at JSXParserMixin.parseExprAtom (c:\Minhas Designações\node_modules\@babel\parser\lib\index.js:11331:23)
+      at JSXParserMixin.parseExprAtom (c:\Minhas Designações\node_modules\@babel\parser\lib\index.js:4764:20)
+      at JSXParserMixin.parseExprSubscripts (c:\Minhas Designações\node_modules\@babel\parser\lib\index.js:11081:23)
+      at JSXParserMixin.parseUpdate (c:\Minhas Designações\node_modules\@babel\parser\lib\index.js:11066:21)
+      at JSXParserMixin.parseMaybeUnary (c:\Minhas Designações\node_modules\@babel\parser\lib\index.js:11046:23)
+      at JSXParserMixin.parseMaybeUnaryOrPrivate (c:\Minhas Designações\node_modules\@babel\parser\lib\index.js:10899:61)
+      at JSXParserMixin.parseExprOps (c:\Minhas Designações\node_modules\@babel\parser\lib\index.js:10904:23)
+      at JSXParserMixin.parseMaybeConditional (c:\Minhas Designações\node_modules\@babel\parser\lib\index.js:10881:23)
+      at JSXParserMixin.parseMaybeAssign (c:\Minhas Designações\node_modules\@babel\parser\lib\index.js:10831:21)
+      at c:\Minhas Designações\node_modules\@babel\parser\lib\index.js:10800:39
+      at JSXParserMixin.allowInAnd (c:\Minhas Designações\node_modules\@babel\parser\lib\index.js:12421:16)
+      at JSXParserMixin.parseMaybeAssignAllowIn (c:\Minhas Designações\node_modules\@babel\parser\lib\index.js:10800:17)
+      at JSXParserMixin.parseVar (c:\Minhas Designações\node_modules\@babel\parser\lib\index.js:13384:91)
+      at JSXParserMixin.parseVarStatement (c:\Minhas Designações\node_modules\@babel\parser\lib\index.js:13230:10)
+      at JSXParserMixin.parseStatementContent (c:\Minhas Designações\node_modules\@babel\parser\lib\index.js:12851:23)
+      at JSXParserMixin.parseStatementLike (c:\Minhas Designações\node_modules\@babel\parser\lib\index.js:12767:17)
+      at JSXParserMixin.parseModuleItem (c:\Minhas Designações\node_modules\@babel\parser\lib\index.js:12744:17)
+      at JSXParserMixin.parseBlockOrModuleBlockBody (c:\Minhas Designações\node_modules\@babel\parser\lib\index.js:13316:36)
+      at JSXParserMixin.parseBlockBody (c:\Minhas Designações\node_modules\@babel\parser\lib\index.js:13309:10)
+      at JSXParserMixin.parseProgram (c:\Minhas Designações\node_modules\@babel\parser\lib\index.js:12622:10)
+      at JSXParserMixin.parseTopLevel (c:\Minhas Designações\node_modules\@babel\parser\lib\index.js:12612:25)
+      at JSXParserMixin.parse (c:\Minhas Designações\node_modules\@babel\parser\lib\index.js:14488:25)
+      at parse (c:\Minhas Designações\node_modules\@babel\parser\lib\index.js:14522:38)
+      at parser (c:\Minhas Designações\node_modules\@babel\core\lib\parser\index.js:41:34)
+      at parser.next (<anonymous>)
+      at normalizeFile (c:\Minhas Designações\node_modules\@babel\core\lib\transformation\normalize-file.js:64:37)
+      at normalizeFile.next (<anonymous>)
+      at run (c:\Minhas Designações\node_modules\@babel\core\lib\transformation\index.js:22:50)
+      at run.next (<anonymous>)
+      at transform (c:\Minhas Designações\node_modules\@babel\core\lib\transform.js:22:33)
+      at transform.next (<anonymous>)
+[2m14:08:14[22m [31m[1m[vite][22m[39m [31mInternal server error: EBUSY: resource busy or locked, open 'C:\Minhas Designações\src\App.jsx'[39m
+      at async open (node:internal/fs/promises:642:25)
+      at async Object.readFile (node:internal/fs/promises:1279:14)
+      at async loadAndTransform (file:///c:/Minhas%20Designa%C3%A7%C3%B5es/node_modules/vite/dist/node/chunks/dep-BK3b2jBa.js:51925:16)
+      at async viteTransformMiddleware (file:///c:/Minhas%20Designa%C3%A7%C3%B5es/node_modules/vite/dist/node/chunks/dep-BK3b2jBa.js:62106:24)
+[2m14:17:22[22m [31m[1m[vite][22m[39m [31mInternal server error: C:\Minhas Designações\src\App.jsx: Identifier 'EMPTY_MEETINGS_IMPORT_PREVIEW' has already been declared. (217:6)
+
+[0m [90m 215 |[31m   buildMeetingBatchLabel
+ [90m 216 |[31m } [33m=[31m meetingImportUtils[33m;[31m
+[31m[1m>[22m[31m[90m 217 |[31m [36mconst[31m [33mEMPTY_MEETINGS_IMPORT_PREVIEW[31m [33m=[31m {
+ [90m     |[31m       [31m[1m^[22m[31m
+ [90m 218 |[31m   open[33m:[31m [36mfalse[31m[33m,[31m
+ [90m 219 |[31m   fileName[33m:[31m [32m''[31m[33m,[31m
+ [90m 220 |[31m   minDate[33m:[31m [32m''[31m[33m,[31m[0m[39m
+  Plugin: [35mvite:react-babel[39m
+  File: [36mC:/Minhas Designações/src/App.jsx[39m:217:6
+[33m  224|    skippedExistingMeetings: 0,
+  225|    skippedExistingAssignments: 0,
+  226|    skippedCsv: 0
+     |      ^
+  227|  };
+  228|  const EMPTY_ASSIGNMENTS_IMPORT_PREVIEW = {[39m
+      at constructor (c:\Minhas Designações\node_modules\@babel\parser\lib\index.js:365:19)
+      at JSXParserMixin.raise (c:\Minhas Designações\node_modules\@babel\parser\lib\index.js:6599:19)
+      at ScopeHandler.checkRedeclarationInScope (c:\Minhas Designações\node_modules\@babel\parser\lib\index.js:1619:19)
+      at ScopeHandler.declareName (c:\Minhas Designações\node_modules\@babel\parser\lib\index.js:1585:12)
+      at JSXParserMixin.declareNameFromIdentifier (c:\Minhas Designações\node_modules\@babel\parser\lib\index.js:7567:16)
+      at JSXParserMixin.checkIdentifier (c:\Minhas Designações\node_modules\@babel\parser\lib\index.js:7563:12)
+      at JSXParserMixin.checkLVal (c:\Minhas Designações\node_modules\@babel\parser\lib\index.js:7500:12)
+      at JSXParserMixin.parseVarId (c:\Minhas Designações\node_modules\@babel\parser\lib\index.js:13412:10)
+      at JSXParserMixin.parseVar (c:\Minhas Designações\node_modules\@babel\parser\lib\index.js:13383:12)
+      at JSXParserMixin.parseVarStatement (c:\Minhas Designações\node_modules\@babel\parser\lib\index.js:13230:10)
+      at JSXParserMixin.parseStatementContent (c:\Minhas Designações\node_modules\@babel\parser\lib\index.js:12851:23)
+      at JSXParserMixin.parseStatementLike (c:\Minhas Designações\node_modules\@babel\parser\lib\index.js:12767:17)
+      at JSXParserMixin.parseModuleItem (c:\Minhas Designações\node_modules\@babel\parser\lib\index.js:12744:17)
+      at JSXParserMixin.parseBlockOrModuleBlockBody (c:\Minhas Designações\node_modules\@babel\parser\lib\index.js:13316:36)
+      at JSXParserMixin.parseBlockBody (c:\Minhas Designações\node_modules\@babel\parser\lib\index.js:13309:10)
+      at JSXParserMixin.parseProgram (c:\Minhas Designações\node_modules\@babel\parser\lib\index.js:12622:10)
+      at JSXParserMixin.parseTopLevel (c:\Minhas Designações\node_modules\@babel\parser\lib\index.js:12612:25)
+      at JSXParserMixin.parse (c:\Minhas Designações\node_modules\@babel\parser\lib\index.js:14488:25)
+      at parse (c:\Minhas Designações\node_modules\@babel\parser\lib\index.js:14522:38)
+      at parser (c:\Minhas Designações\node_modules\@babel\core\lib\parser\index.js:41:34)
+      at parser.next (<anonymous>)
+      at normalizeFile (c:\Minhas Designações\node_modules\@babel\core\lib\transformation\normalize-file.js:64:37)
+      at normalizeFile.next (<anonymous>)
+      at run (c:\Minhas Designações\node_modules\@babel\core\lib\transformation\index.js:22:50)
+      at run.next (<anonymous>)
+      at transform (c:\Minhas Designações\node_modules\@babel\core\lib\transform.js:22:33)
+      at transform.next (<anonymous>)
+      at step (c:\Minhas Designações\node_modules\gensync\index.js:261:32)
+      at c:\Minhas Designações\node_modules\gensync\index.js:273:13
+      at async.call.result.err.err (c:\Minhas Designações\node_modules\gensync\index.js:223:11)
+      at c:\Minhas Designações\node_modules\gensync\index.js:189:28
+      at c:\Minhas Designações\node_modules\@babel\core\lib\gensync-utils\async.js:67:7
+      at c:\Minhas Designações\node_modules\gensync\index.js:113:33
+      at step (c:\Minhas Designações\node_modules\gensync\index.js:287:14)
+      at c:\Minhas Designações\node_modules\gensync\index.js:273:13
+      at async.call.result.err.err (c:\Minhas Designações\node_modules\gensync\index.js:223:11)
+[2m14:17:55[22m [31m[1m[vite][22m[39m [31mInternal server error: C:\Minhas Designações\src\App.jsx: Identifier 'handleImportMeetingsFile' has already been declared. (2025:8)
+
+[0m [90m 2023 |[31m   )[33m;[31m
+ [90m 2024 |[31m
+[31m[1m>[22m[31m[90m 2025 |[31m   [36mconst[31m handleImportMeetingsFile [33m=[31m useCallback(
+ [90m      |[31m         [31m[1m^[22m[31m
+ [90m 2026 |[31m     [36masync[31m (file) [33m=>[31m {
+ [90m 2027 |[31m       [36mif[31m ([33m![31mfile) [36mreturn[31m[33m;[31m
+ [90m 2028 |[31m       [36mif[31m (isImportingMeetings) [36mreturn[31m[33m;[31m[0m[39m
+  Plugin: [35mvite:react-babel[39m
+  File: [36mC:/Minhas Designações/src/App.jsx[39m:2025:8
+[33m  2072|          const usersIndex = data.users.map((u) => ({
+  2073|            id: u.id,
+  2074|            label: getUserDisplayName(u),
+     |   ^
+  2075|            norm: normalizePersonName(getUserDisplayName(u))
+  2076|          }));[39m
+      at constructor (c:\Minhas Designações\node_modules\@babel\parser\lib\index.js:365:19)
+      at JSXParserMixin.raise (c:\Minhas Designações\node_modules\@babel\parser\lib\index.js:6599:19)
+      at ScopeHandler.checkRedeclarationInScope (c:\Minhas Designações\node_modules\@babel\parser\lib\index.js:1619:19)
+      at ScopeHandler.declareName (c:\Minhas Designações\node_modules\@babel\parser\lib\index.js:1585:12)
+      at JSXParserMixin.declareNameFromIdentifier (c:\Minhas Designações\node_modules\@babel\parser\lib\index.js:7567:16)
+      at JSXParserMixin.checkIdentifier (c:\Minhas Designações\node_modules\@babel\parser\lib\index.js:7563:12)
+      at JSXParserMixin.checkLVal (c:\Minhas Designações\node_modules\@babel\parser\lib\index.js:7500:12)
+      at JSXParserMixin.parseVarId (c:\Minhas Designações\node_modules\@babel\parser\lib\index.js:13412:10)
+      at JSXParserMixin.parseVar (c:\Minhas Designações\node_modules\@babel\parser\lib\index.js:13383:12)
+      at JSXParserMixin.parseVarStatement (c:\Minhas Designações\node_modules\@babel\parser\lib\index.js:13230:10)
+      at JSXParserMixin.parseStatementContent (c:\Minhas Designações\node_modules\@babel\parser\lib\index.js:12851:23)
+      at JSXParserMixin.parseStatementLike (c:\Minhas Designações\node_modules\@babel\parser\lib\index.js:12767:17)
+      at JSXParserMixin.parseStatementListItem (c:\Minhas Designações\node_modules\@babel\parser\lib\index.js:12747:17)
+      at JSXParserMixin.parseBlockOrModuleBlockBody (c:\Minhas Designações\node_modules\@babel\parser\lib\index.js:13316:61)
+      at JSXParserMixin.parseBlockBody (c:\Minhas Designações\node_modules\@babel\parser\lib\index.js:13309:10)
+      at JSXParserMixin.parseBlock (c:\Minhas Designações\node_modules\@babel\parser\lib\index.js:13297:10)
+      at JSXParserMixin.parseFunctionBody (c:\Minhas Designações\node_modules\@babel\parser\lib\index.js:12100:24)
+      at JSXParserMixin.parseArrowExpression (c:\Minhas Designações\node_modules\@babel\parser\lib\index.js:12075:10)
+      at JSXParserMixin.parseParenAndDistinguishExpression (c:\Minhas Designações\node_modules\@babel\parser\lib\index.js:11687:12)
+      at JSXParserMixin.parseExprAtom (c:\Minhas Designações\node_modules\@babel\parser\lib\index.js:11331:23)
+      at JSXParserMixin.parseExprAtom (c:\Minhas Designações\node_modules\@babel\parser\lib\index.js:4764:20)
+      at JSXParserMixin.parseExprSubscripts (c:\Minhas Designações\node_modules\@babel\parser\lib\index.js:11081:23)
+      at JSXParserMixin.parseUpdate (c:\Minhas Designações\node_modules\@babel\parser\lib\index.js:11066:21)
+      at JSXParserMixin.parseMaybeUnary (c:\Minhas Designações\node_modules\@babel\parser\lib\index.js:11046:23)
+      at JSXParserMixin.parseMaybeUnaryOrPrivate (c:\Minhas Designações\node_modules\@babel\parser\lib\index.js:10899:61)
+      at JSXParserMixin.parseExprOps (c:\Minhas Designações\node_modules\@babel\parser\lib\index.js:10904:23)
+      at JSXParserMixin.parseMaybeConditional (c:\Minhas Designações\node_modules\@babel\parser\lib\index.js:10881:23)
+      at JSXParserMixin.parseMaybeAssign (c:\Minhas Designações\node_modules\@babel\parser\lib\index.js:10831:21)
+      at c:\Minhas Designações\node_modules\@babel\parser\lib\index.js:10800:39
+      at JSXParserMixin.allowInAnd (c:\Minhas Designações\node_modules\@babel\parser\lib\index.js:12421:16)
+      at JSXParserMixin.parseMaybeAssignAllowIn (c:\Minhas Designações\node_modules\@babel\parser\lib\index.js:10800:17)
+      at JSXParserMixin.parseVar (c:\Minhas Designações\node_modules\@babel\parser\lib\index.js:13384:91)
+      at JSXParserMixin.parseVarStatement (c:\Minhas Designações\node_modules\@babel\parser\lib\index.js:13230:10)
+      at JSXParserMixin.parseStatementContent (c:\Minhas Designações\node_modules\@babel\parser\lib\index.js:12851:23)
+      at JSXParserMixin.parseStatementLike (c:\Minhas Designações\node_modules\@babel\parser\lib\index.js:12767:17)
+      at JSXParserMixin.parseModuleItem (c:\Minhas Designações\node_modules\@babel\parser\lib\index.js:12744:17)
+      at JSXParserMixin.parseBlockOrModuleBlockBody (c:\Minhas Designações\node_modules\@babel\parser\lib\index.js:13316:36)
+      at JSXParserMixin.parseBlockBody (c:\Minhas Designações\node_modules\@babel\parser\lib\index.js:13309:10)
+      at JSXParserMixin.parseProgram (c:\Minhas Designações\node_modules\@babel\parser\lib\index.js:12622:10)
+      at JSXParserMixin.parseTopLevel (c:\Minhas Designações\node_modules\@babel\parser\lib\index.js:12612:25)
+      at JSXParserMixin.parse (c:\Minhas Designações\node_modules\@babel\parser\lib\index.js:14488:25)
+      at parse (c:\Minhas Designações\node_modules\@babel\parser\lib\index.js:14522:38)
+      at parser (c:\Minhas Designações\node_modules\@babel\core\lib\parser\index.js:41:34)
+      at parser.next (<anonymous>)
+      at normalizeFile (c:\Minhas Designações\node_modules\@babel\core\lib\transformation\normalize-file.js:64:37)
+      at normalizeFile.next (<anonymous>)
+      at run (c:\Minhas Designações\node_modules\@babel\core\lib\transformation\index.js:22:50)
+      at run.next (<anonymous>)
+      at transform (c:\Minhas Designações\node_modules\@babel\core\lib\transform.js:22:33)
+      at transform.next (<anonymous>)
+[2m14:18:31[22m [31m[1m[vite][22m[39m [31mInternal server error: C:\Minhas Designações\src\App.jsx: Identifier 'handleImportMeetingsFile' has already been declared. (2025:8)
+
+[0m [90m 2023 |[31m   )[33m;[31m
+ [90m 2024 |[31m
+[31m[1m>[22m[31m[90m 2025 |[31m   [36mconst[31m handleImportMeetingsFile [33m=[31m useCallback(
+ [90m      |[31m         [31m[1m^[22m[31m
+ [90m 2026 |[31m     [36masync[31m (file) [33m=>[31m {
+ [90m 2027 |[31m       [36mif[31m ([33m![31mfile) [36mreturn[31m[33m;[31m
+ [90m 2028 |[31m       [36mif[31m (isImportingMeetings) [36mreturn[31m[33m;[31m[0m[39m
+  Plugin: [35mvite:react-babel[39m
+  File: [36mC:/Minhas Designações/src/App.jsx[39m:2025:8
+[33m  2071|  
+  2072|          const usersIndex = data.users.map((u) => ({
+  2073|            id: u.id,
+     |               ^
+  2074|            label: getUserDisplayName(u),
+  2075|            norm: normalizePersonName(getUserDisplayName(u))[39m
+      at constructor (c:\Minhas Designações\node_modules\@babel\parser\lib\index.js:365:19)
+      at JSXParserMixin.raise (c:\Minhas Designações\node_modules\@babel\parser\lib\index.js:6599:19)
+      at ScopeHandler.checkRedeclarationInScope (c:\Minhas Designações\node_modules\@babel\parser\lib\index.js:1619:19)
+      at ScopeHandler.declareName (c:\Minhas Designações\node_modules\@babel\parser\lib\index.js:1585:12)
+      at JSXParserMixin.declareNameFromIdentifier (c:\Minhas Designações\node_modules\@babel\parser\lib\index.js:7567:16)
+      at JSXParserMixin.checkIdentifier (c:\Minhas Designações\node_modules\@babel\parser\lib\index.js:7563:12)
+      at JSXParserMixin.checkLVal (c:\Minhas Designações\node_modules\@babel\parser\lib\index.js:7500:12)
+      at JSXParserMixin.parseVarId (c:\Minhas Designações\node_modules\@babel\parser\lib\index.js:13412:10)
+      at JSXParserMixin.parseVar (c:\Minhas Designações\node_modules\@babel\parser\lib\index.js:13383:12)
+      at JSXParserMixin.parseVarStatement (c:\Minhas Designações\node_modules\@babel\parser\lib\index.js:13230:10)
+      at JSXParserMixin.parseStatementContent (c:\Minhas Designações\node_modules\@babel\parser\lib\index.js:12851:23)
+      at JSXParserMixin.parseStatementLike (c:\Minhas Designações\node_modules\@babel\parser\lib\index.js:12767:17)
+      at JSXParserMixin.parseStatementListItem (c:\Minhas Designações\node_modules\@babel\parser\lib\index.js:12747:17)
+      at JSXParserMixin.parseBlockOrModuleBlockBody (c:\Minhas Designações\node_modules\@babel\parser\lib\index.js:13316:61)
+      at JSXParserMixin.parseBlockBody (c:\Minhas Designações\node_modules\@babel\parser\lib\index.js:13309:10)
+      at JSXParserMixin.parseBlock (c:\Minhas Designações\node_modules\@babel\parser\lib\index.js:13297:10)
+      at JSXParserMixin.parseFunctionBody (c:\Minhas Designações\node_modules\@babel\parser\lib\index.js:12100:24)
+      at JSXParserMixin.parseArrowExpression (c:\Minhas Designações\node_modules\@babel\parser\lib\index.js:12075:10)
+      at JSXParserMixin.parseParenAndDistinguishExpression (c:\Minhas Designações\node_modules\@babel\parser\lib\index.js:11687:12)
+      at JSXParserMixin.parseExprAtom (c:\Minhas Designações\node_modules\@babel\parser\lib\index.js:11331:23)
+      at JSXParserMixin.parseExprAtom (c:\Minhas Designações\node_modules\@babel\parser\lib\index.js:4764:20)
+      at JSXParserMixin.parseExprSubscripts (c:\Minhas Designações\node_modules\@babel\parser\lib\index.js:11081:23)
+      at JSXParserMixin.parseUpdate (c:\Minhas Designações\node_modules\@babel\parser\lib\index.js:11066:21)
+      at JSXParserMixin.parseMaybeUnary (c:\Minhas Designações\node_modules\@babel\parser\lib\index.js:11046:23)
+      at JSXParserMixin.parseMaybeUnaryOrPrivate (c:\Minhas Designações\node_modules\@babel\parser\lib\index.js:10899:61)
+      at JSXParserMixin.parseExprOps (c:\Minhas Designações\node_modules\@babel\parser\lib\index.js:10904:23)
+      at JSXParserMixin.parseMaybeConditional (c:\Minhas Designações\node_modules\@babel\parser\lib\index.js:10881:23)
+      at JSXParserMixin.parseMaybeAssign (c:\Minhas Designações\node_modules\@babel\parser\lib\index.js:10831:21)
+      at c:\Minhas Designações\node_modules\@babel\parser\lib\index.js:10800:39
+      at JSXParserMixin.allowInAnd (c:\Minhas Designações\node_modules\@babel\parser\lib\index.js:12421:16)
+      at JSXParserMixin.parseMaybeAssignAllowIn (c:\Minhas Designações\node_modules\@babel\parser\lib\index.js:10800:17)
+      at JSXParserMixin.parseVar (c:\Minhas Designações\node_modules\@babel\parser\lib\index.js:13384:91)
+      at JSXParserMixin.parseVarStatement (c:\Minhas Designações\node_modules\@babel\parser\lib\index.js:13230:10)
+      at JSXParserMixin.parseStatementContent (c:\Minhas Designações\node_modules\@babel\parser\lib\index.js:12851:23)
+      at JSXParserMixin.parseStatementLike (c:\Minhas Designações\node_modules\@babel\parser\lib\index.js:12767:17)
+      at JSXParserMixin.parseModuleItem (c:\Minhas Designações\node_modules\@babel\parser\lib\index.js:12744:17)
+      at JSXParserMixin.parseBlockOrModuleBlockBody (c:\Minhas Designações\node_modules\@babel\parser\lib\index.js:13316:36)
+      at JSXParserMixin.parseBlockBody (c:\Minhas Designações\node_modules\@babel\parser\lib\index.js:13309:10)
+      at JSXParserMixin.parseProgram (c:\Minhas Designações\node_modules\@babel\parser\lib\index.js:12622:10)
+      at JSXParserMixin.parseTopLevel (c:\Minhas Designações\node_modules\@babel\parser\lib\index.js:12612:25)
+      at JSXParserMixin.parse (c:\Minhas Designações\node_modules\@babel\parser\lib\index.js:14488:25)
+      at parse (c:\Minhas Designações\node_modules\@babel\parser\lib\index.js:14522:38)
+      at parser (c:\Minhas Designações\node_modules\@babel\core\lib\parser\index.js:41:34)
+      at parser.next (<anonymous>)
+      at normalizeFile (c:\Minhas Designações\node_modules\@babel\core\lib\transformation\normalize-file.js:64:37)
+      at normalizeFile.next (<anonymous>)
+      at run (c:\Minhas Designações\node_modules\@babel\core\lib\transformation\index.js:22:50)
+      at run.next (<anonymous>)
+      at transform (c:\Minhas Designações\node_modules\@babel\core\lib\transform.js:22:33)
+      at transform.next (<anonymous>)
+[2m14:19:15[22m [31m[1m[vite][22m[39m [31mInternal server error: EBUSY: resource busy or locked, open 'C:\Minhas Designações\src\App.jsx'[39m
+      at async open (node:internal/fs/promises:642:25)
+      at async Object.readFile (node:internal/fs/promises:1279:14)
+      at async loadAndTransform (file:///c:/Minhas%20Designa%C3%A7%C3%B5es/node_modules/vite/dist/node/chunks/dep-BK3b2jBa.js:51925:16)
+      at async viteTransformMiddleware (file:///c:/Minhas%20Designa%C3%A7%C3%B5es/node_modules/vite/dist/node/chunks/dep-BK3b2jBa.js:62106:24)
+[2m14:44:34[22m [31m[1m[vite][22m[39m [31mInternal server error: C:\Minhas Designações\src\App.jsx: Identifier 'closeCsvResolve' has already been declared. (1727:4)
+
+[0m [90m 1725 |[31m     assignmentsImportPreview[33m,[31m
+ [90m 1726 |[31m     closeAssignmentsImportPreview[33m,[31m
+[31m[1m>[22m[31m[90m 1727 |[31m     closeCsvResolve[33m,[31m
+ [90m      |[31m     [31m[1m^[22m[31m
+ [90m 1728 |[31m     csvResolveState[33m,[31m
+ [90m 1729 |[31m     handleConfirmAssignmentsImport[33m,[31m
+ [90m 1730 |[31m     handleConfirmCsvResolve[33m,[31m[0m[39m
+  Plugin: [35mvite:react-babel[39m
+  File: [36mC:/Minhas Designações/src/App.jsx[39m:1727:4
+[33m  1778|          rows.forEach((row, idx) => {
+  1779|            const name = row.nome || row.name || row.usuario || row.user || '';
+  1780|            const uid = row.uid || row.usuario_id || row.user_id || row.userid || row.userId || '';
+     |                                                                ^
+  1781|            const task = row.tarefa || row.tipo || row.designacao || '';
+  1782|            const date = normalizeCsvDate(row.data || row.date || row.dia || '');[39m
+      at constructor (c:\Minhas Designações\node_modules\@babel\parser\lib\index.js:365:19)
+      at JSXParserMixin.raise (c:\Minhas Designações\node_modules\@babel\parser\lib\index.js:6599:19)
+      at ScopeHandler.checkRedeclarationInScope (c:\Minhas Designações\node_modules\@babel\parser\lib\index.js:1619:19)
+      at ScopeHandler.declareName (c:\Minhas Designações\node_modules\@babel\parser\lib\index.js:1585:12)
+      at JSXParserMixin.declareNameFromIdentifier (c:\Minhas Designações\node_modules\@babel\parser\lib\index.js:7567:16)
+      at JSXParserMixin.checkIdentifier (c:\Minhas Designações\node_modules\@babel\parser\lib\index.js:7563:12)
+      at JSXParserMixin.checkLVal (c:\Minhas Designações\node_modules\@babel\parser\lib\index.js:7500:12)
+      at JSXParserMixin.checkLVal (c:\Minhas Designações\node_modules\@babel\parser\lib\index.js:7544:12)
+      at JSXParserMixin.checkLVal (c:\Minhas Designações\node_modules\@babel\parser\lib\index.js:7540:16)
+      at JSXParserMixin.parseVarId (c:\Minhas Designações\node_modules\@babel\parser\lib\index.js:13412:10)
+      at JSXParserMixin.parseVar (c:\Minhas Designações\node_modules\@babel\parser\lib\index.js:13383:12)
+      at JSXParserMixin.parseVarStatement (c:\Minhas Designações\node_modules\@babel\parser\lib\index.js:13230:10)
+      at JSXParserMixin.parseStatementContent (c:\Minhas Designações\node_modules\@babel\parser\lib\index.js:12851:23)
+      at JSXParserMixin.parseStatementLike (c:\Minhas Designações\node_modules\@babel\parser\lib\index.js:12767:17)
+      at JSXParserMixin.parseStatementListItem (c:\Minhas Designações\node_modules\@babel\parser\lib\index.js:12747:17)
+      at JSXParserMixin.parseBlockOrModuleBlockBody (c:\Minhas Designações\node_modules\@babel\parser\lib\index.js:13316:61)
+      at JSXParserMixin.parseBlockBody (c:\Minhas Designações\node_modules\@babel\parser\lib\index.js:13309:10)
+      at JSXParserMixin.parseBlock (c:\Minhas Designações\node_modules\@babel\parser\lib\index.js:13297:10)
+      at JSXParserMixin.parseFunctionBody (c:\Minhas Designações\node_modules\@babel\parser\lib\index.js:12100:24)
+      at JSXParserMixin.parseArrowExpression (c:\Minhas Designações\node_modules\@babel\parser\lib\index.js:12075:10)
+      at JSXParserMixin.parseParenAndDistinguishExpression (c:\Minhas Designações\node_modules\@babel\parser\lib\index.js:11687:12)
+      at JSXParserMixin.parseExprAtom (c:\Minhas Designações\node_modules\@babel\parser\lib\index.js:11331:23)
+      at JSXParserMixin.parseExprAtom (c:\Minhas Designações\node_modules\@babel\parser\lib\index.js:4764:20)
+      at JSXParserMixin.parseExprSubscripts (c:\Minhas Designações\node_modules\@babel\parser\lib\index.js:11081:23)
+      at JSXParserMixin.parseUpdate (c:\Minhas Designações\node_modules\@babel\parser\lib\index.js:11066:21)
+      at JSXParserMixin.parseMaybeUnary (c:\Minhas Designações\node_modules\@babel\parser\lib\index.js:11046:23)
+      at JSXParserMixin.parseMaybeUnaryOrPrivate (c:\Minhas Designações\node_modules\@babel\parser\lib\index.js:10899:61)
+      at JSXParserMixin.parseExprOps (c:\Minhas Designações\node_modules\@babel\parser\lib\index.js:10904:23)
+      at JSXParserMixin.parseMaybeConditional (c:\Minhas Designações\node_modules\@babel\parser\lib\index.js:10881:23)
+      at JSXParserMixin.parseMaybeAssign (c:\Minhas Designações\node_modules\@babel\parser\lib\index.js:10831:21)
+      at c:\Minhas Designações\node_modules\@babel\parser\lib\index.js:10800:39
+      at JSXParserMixin.allowInAnd (c:\Minhas Designações\node_modules\@babel\parser\lib\index.js:12421:16)
+      at JSXParserMixin.parseMaybeAssignAllowIn (c:\Minhas Designações\node_modules\@babel\parser\lib\index.js:10800:17)
+      at JSXParserMixin.parseVar (c:\Minhas Designações\node_modules\@babel\parser\lib\index.js:13384:91)
+      at JSXParserMixin.parseVarStatement (c:\Minhas Designações\node_modules\@babel\parser\lib\index.js:13230:10)
+      at JSXParserMixin.parseStatementContent (c:\Minhas Designações\node_modules\@babel\parser\lib\index.js:12851:23)
+      at JSXParserMixin.parseStatementLike (c:\Minhas Designações\node_modules\@babel\parser\lib\index.js:12767:17)
+      at JSXParserMixin.parseModuleItem (c:\Minhas Designações\node_modules\@babel\parser\lib\index.js:12744:17)
+      at JSXParserMixin.parseBlockOrModuleBlockBody (c:\Minhas Designações\node_modules\@babel\parser\lib\index.js:13316:36)
+      at JSXParserMixin.parseBlockBody (c:\Minhas Designações\node_modules\@babel\parser\lib\index.js:13309:10)
+      at JSXParserMixin.parseProgram (c:\Minhas Designações\node_modules\@babel\parser\lib\index.js:12622:10)
+      at JSXParserMixin.parseTopLevel (c:\Minhas Designações\node_modules\@babel\parser\lib\index.js:12612:25)
+      at JSXParserMixin.parse (c:\Minhas Designações\node_modules\@babel\parser\lib\index.js:14488:25)
+      at parse (c:\Minhas Designações\node_modules\@babel\parser\lib\index.js:14522:38)
+      at parser (c:\Minhas Designações\node_modules\@babel\core\lib\parser\index.js:41:34)
+      at parser.next (<anonymous>)
+      at normalizeFile (c:\Minhas Designações\node_modules\@babel\core\lib\transformation\normalize-file.js:64:37)
+      at normalizeFile.next (<anonymous>)
+      at run (c:\Minhas Designações\node_modules\@babel\core\lib\transformation\index.js:22:50)
+      at run.next (<anonymous>)
+[2m14:45:06[22m [31m[1m[vite][22m[39m [31mInternal server error: C:\Minhas Designações\src\App.jsx: Identifier 'closeCsvResolve' has already been declared. (1727:4)
+
+[0m [90m 1725 |[31m     assignmentsImportPreview[33m,[31m
+ [90m 1726 |[31m     closeAssignmentsImportPreview[33m,[31m
+[31m[1m>[22m[31m[90m 1727 |[31m     closeCsvResolve[33m,[31m
+ [90m      |[31m     [31m[1m^[22m[31m
+ [90m 1728 |[31m     csvResolveState[33m,[31m
+ [90m 1729 |[31m     handleConfirmAssignmentsImport[33m,[31m
+ [90m 1730 |[31m     handleConfirmCsvResolve[33m,[31m[0m[39m
+  Plugin: [35mvite:react-babel[39m
+  File: [36mC:/Minhas Designações/src/App.jsx[39m:1727:4
+[33m  1776|        if (targetLayer !== 'CSV_RESOLVE') closeCsvResolve();
+  1777|        if (targetLayer !== 'ACCOUNT') setIsChangingPass(false);
+  1778|        if (targetLayer !== 'HELP') setIsHelpOpen(false);
+     |     ^
+  1779|        if (targetLayer !== 'ABOUT') setIsAboutOpen(false);
+  1780|        if (targetLayer !== 'USER_MENU') setIsUserMenuOpen(false);[39m
+      at constructor (c:\Minhas Designações\node_modules\@babel\parser\lib\index.js:365:19)
+      at JSXParserMixin.raise (c:\Minhas Designações\node_modules\@babel\parser\lib\index.js:6599:19)
+      at ScopeHandler.checkRedeclarationInScope (c:\Minhas Designações\node_modules\@babel\parser\lib\index.js:1619:19)
+      at ScopeHandler.declareName (c:\Minhas Designações\node_modules\@babel\parser\lib\index.js:1585:12)
+      at JSXParserMixin.declareNameFromIdentifier (c:\Minhas Designações\node_modules\@babel\parser\lib\index.js:7567:16)
+      at JSXParserMixin.checkIdentifier (c:\Minhas Designações\node_modules\@babel\parser\lib\index.js:7563:12)
+      at JSXParserMixin.checkLVal (c:\Minhas Designações\node_modules\@babel\parser\lib\index.js:7500:12)
+      at JSXParserMixin.checkLVal (c:\Minhas Designações\node_modules\@babel\parser\lib\index.js:7544:12)
+      at JSXParserMixin.checkLVal (c:\Minhas Designações\node_modules\@babel\parser\lib\index.js:7540:16)
+      at JSXParserMixin.parseVarId (c:\Minhas Designações\node_modules\@babel\parser\lib\index.js:13412:10)
+      at JSXParserMixin.parseVar (c:\Minhas Designações\node_modules\@babel\parser\lib\index.js:13383:12)
+      at JSXParserMixin.parseVarStatement (c:\Minhas Designações\node_modules\@babel\parser\lib\index.js:13230:10)
+      at JSXParserMixin.parseStatementContent (c:\Minhas Designações\node_modules\@babel\parser\lib\index.js:12851:23)
+      at JSXParserMixin.parseStatementLike (c:\Minhas Designações\node_modules\@babel\parser\lib\index.js:12767:17)
+      at JSXParserMixin.parseStatementListItem (c:\Minhas Designações\node_modules\@babel\parser\lib\index.js:12747:17)
+      at JSXParserMixin.parseBlockOrModuleBlockBody (c:\Minhas Designações\node_modules\@babel\parser\lib\index.js:13316:61)
+      at JSXParserMixin.parseBlockBody (c:\Minhas Designações\node_modules\@babel\parser\lib\index.js:13309:10)
+      at JSXParserMixin.parseBlock (c:\Minhas Designações\node_modules\@babel\parser\lib\index.js:13297:10)
+      at JSXParserMixin.parseFunctionBody (c:\Minhas Designações\node_modules\@babel\parser\lib\index.js:12100:24)
+      at JSXParserMixin.parseArrowExpression (c:\Minhas Designações\node_modules\@babel\parser\lib\index.js:12075:10)
+      at JSXParserMixin.parseParenAndDistinguishExpression (c:\Minhas Designações\node_modules\@babel\parser\lib\index.js:11687:12)
+      at JSXParserMixin.parseExprAtom (c:\Minhas Designações\node_modules\@babel\parser\lib\index.js:11331:23)
+      at JSXParserMixin.parseExprAtom (c:\Minhas Designações\node_modules\@babel\parser\lib\index.js:4764:20)
+      at JSXParserMixin.parseExprSubscripts (c:\Minhas Designações\node_modules\@babel\parser\lib\index.js:11081:23)
+      at JSXParserMixin.parseUpdate (c:\Minhas Designações\node_modules\@babel\parser\lib\index.js:11066:21)
+      at JSXParserMixin.parseMaybeUnary (c:\Minhas Designações\node_modules\@babel\parser\lib\index.js:11046:23)
+      at JSXParserMixin.parseMaybeUnaryOrPrivate (c:\Minhas Designações\node_modules\@babel\parser\lib\index.js:10899:61)
+      at JSXParserMixin.parseExprOps (c:\Minhas Designações\node_modules\@babel\parser\lib\index.js:10904:23)
+      at JSXParserMixin.parseMaybeConditional (c:\Minhas Designações\node_modules\@babel\parser\lib\index.js:10881:23)
+      at JSXParserMixin.parseMaybeAssign (c:\Minhas Designações\node_modules\@babel\parser\lib\index.js:10831:21)
+      at c:\Minhas Designações\node_modules\@babel\parser\lib\index.js:10800:39
+      at JSXParserMixin.allowInAnd (c:\Minhas Designações\node_modules\@babel\parser\lib\index.js:12421:16)
+      at JSXParserMixin.parseMaybeAssignAllowIn (c:\Minhas Designações\node_modules\@babel\parser\lib\index.js:10800:17)
+      at JSXParserMixin.parseVar (c:\Minhas Designações\node_modules\@babel\parser\lib\index.js:13384:91)
+      at JSXParserMixin.parseVarStatement (c:\Minhas Designações\node_modules\@babel\parser\lib\index.js:13230:10)
+      at JSXParserMixin.parseStatementContent (c:\Minhas Designações\node_modules\@babel\parser\lib\index.js:12851:23)
+      at JSXParserMixin.parseStatementLike (c:\Minhas Designações\node_modules\@babel\parser\lib\index.js:12767:17)
+      at JSXParserMixin.parseModuleItem (c:\Minhas Designações\node_modules\@babel\parser\lib\index.js:12744:17)
+      at JSXParserMixin.parseBlockOrModuleBlockBody (c:\Minhas Designações\node_modules\@babel\parser\lib\index.js:13316:36)
+      at JSXParserMixin.parseBlockBody (c:\Minhas Designações\node_modules\@babel\parser\lib\index.js:13309:10)
+      at JSXParserMixin.parseProgram (c:\Minhas Designações\node_modules\@babel\parser\lib\index.js:12622:10)
+      at JSXParserMixin.parseTopLevel (c:\Minhas Designações\node_modules\@babel\parser\lib\index.js:12612:25)
+      at JSXParserMixin.parse (c:\Minhas Designações\node_modules\@babel\parser\lib\index.js:14488:25)
+      at parse (c:\Minhas Designações\node_modules\@babel\parser\lib\index.js:14522:38)
+      at parser (c:\Minhas Designações\node_modules\@babel\core\lib\parser\index.js:41:34)
+      at parser.next (<anonymous>)
+      at normalizeFile (c:\Minhas Designações\node_modules\@babel\core\lib\transformation\normalize-file.js:64:37)
+      at normalizeFile.next (<anonymous>)
+      at run (c:\Minhas Designações\node_modules\@babel\core\lib\transformation\index.js:22:50)
+      at run.next (<anonymous>)
+^C^C

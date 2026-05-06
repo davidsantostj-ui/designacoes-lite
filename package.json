@@ -1,23 +1,44 @@
 {
-  "name": "app",
+  "name": "minhas-designacoes",
+  "version": "5.1.1",
   "private": true,
-  "version": "0.0.0",
-  "type": "module",
   "scripts": {
     "dev": "vite",
     "build": "vite build",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "lint": "eslint src --ext .js,.jsx",
+    "format": "prettier --write \"src/**/*.{js,jsx,css,html}\"",
+    "fix:encoding": "node scripts/fix-encoding.js",
+    "test:local": "node scripts/local-test.js",
+    "test:e2e": "node scripts/e2e-smoke.js",
+    "test:prelaunch": "node scripts/prelaunch-check.js",
+    "test:unit": "mocha --timeout 10000 \"scripts/tests/unit/**/*.test.js\"",
+    "firebase:login": "npx firebase-tools login",
+    "firebase:use": "npx firebase-tools use --add",
+    "deploy": "npm run build && npx firebase-tools deploy --only hosting,firestore",
+    "test:rules": "node scripts/run-rules-tests.js"
   },
   "dependencies": {
-    "lucide-react": "^0.561.0",
-    "react-dom": "^19.2.3",
-    "react": "^19.2.3",
-    "@google/genai": "^1.33.0"
+    "firebase": "^9.22.0",
+    "lucide-react": "^0.263.1",
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0"
   },
   "devDependencies": {
-    "@types/node": "^22.14.0",
-    "@vitejs/plugin-react": "^5.0.0",
-    "typescript": "~5.8.2",
-    "vite": "^6.2.0"
+    "@firebase/rules-unit-testing": "^2.0.7",
+    "@vitejs/plugin-react": "^4.3.0",
+    "autoprefixer": "^10.4.18",
+    "eslint": "^8.57.0",
+    "eslint-config-prettier": "^9.0.0",
+    "eslint-plugin-import": "^2.29.1",
+    "eslint-plugin-react": "^7.34.1",
+    "eslint-plugin-react-hooks": "^4.6.2",
+    "mocha": "^10.2.0",
+    "postcss": "^8.4.35",
+    "prettier": "^3.2.5",
+    "source-map": "^0.7.6",
+    "tailwindcss": "^3.4.1",
+    "vite": "^5.4.0",
+    "vite-plugin-pwa": "^1.2.0"
   }
 }

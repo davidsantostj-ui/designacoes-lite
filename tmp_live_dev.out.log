@@ -1,0 +1,86 @@
+
+> minhas-designacoes@4.0.3 dev
+> vite --host 127.0.0.1 --port 5173
+
+Re-optimizing dependencies because lockfile has changed
+
+  [32m[1mVITE[22m v5.4.21[39m  [2mready in [0m[1m738[22m[2m[0m ms[22m
+
+  [32m➜[39m  [1mLocal[22m:   [36mhttp://127.0.0.1:[1m5173[22m/[39m
+[2m20:46:45[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/index.css, /src/App.jsx[22m
+[2m20:47:16[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/index.css, /src/App.jsx[22m
+[2m20:47:29[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/features/meetings/MeetingsView.jsx, /src/index.css[22m
+[2m20:47:38[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/features/talks/TalksView.jsx, /src/index.css[22m
+[2m21:00:02[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/index.css, /src/App.jsx[22m
+[2m21:01:23[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/index.css, /src/App.jsx[22m
+[2m21:01:57[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/index.css, /src/App.jsx[22m
+[2m21:02:05[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/index.css, /src/App.jsx[22m
+[2m21:02:36[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/index.css, /src/App.jsx[22m
+[2m21:03:36[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/features/talks/TalksView.jsx, /src/index.css[22m
+[2m21:03:47[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/components/views/SecondaryViews.jsx, /src/index.css[22m
+[2m21:03:55[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/App.jsx, /src/index.css[22m
+[2m22:21:01[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/index.css, /src/App.jsx[22m
+[2m22:21:20[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/index.css, /src/App.jsx[22m
+[2m22:23:19[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/index.css, /src/App.jsx[22m
+[2m22:24:59[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/App.jsx, /src/index.css[22m
+[2m22:25:06[22m [36m[1m[vite][22m[39m [32mpage reload [39m[2msrc/features/admin/AdminApprovalsTab.jsx[22m
+[2m22:26:21[22m [36m[1m[vite][22m[39m [32mpage reload [39m[2msrc/features/admin/AdminApprovalsTab.jsx[22m
+[2m22:26:38[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/App.jsx, /src/index.css[22m
+[2m22:35:00[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/App.jsx, /src/index.css[22m
+[2m22:35:41[22m [36m[1m[vite][22m[39m [32mpage reload [39m[2mindex.html[22m
+[2m22:57:23[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/App.jsx, /src/index.css[22m
+[2m22:57:23[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/App.jsx, /src/index.css[22m
+[2m22:57:24[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/App.jsx, /src/index.css[22m
+[2m22:57:26[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/App.jsx, /src/index.css[22m
+[2m22:57:31[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/App.jsx, /src/index.css[22m
+[2m22:57:34[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/App.jsx, /src/index.css[22m
+[2m22:57:37[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/App.jsx, /src/index.css[22m
+[2m22:57:46[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/App.jsx, /src/index.css[22m
+[2m22:57:48[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/App.jsx, /src/index.css[22m
+[2m22:57:50[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/App.jsx, /src/index.css[22m
+[2m22:57:59[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/App.jsx, /src/index.css[22m
+[2m22:58:07[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/components/views/SecondaryViews.jsx, /src/index.css[22m
+[2m22:58:10[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/components/views/SecondaryViews.jsx, /src/index.css[22m
+[2m22:58:13[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/components/views/SecondaryViews.jsx, /src/index.css[22m
+[2m22:58:15[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/components/views/SecondaryViews.jsx, /src/index.css[22m
+[2m22:58:17[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/components/views/SecondaryViews.jsx, /src/index.css[22m
+[2m23:08:42[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/App.jsx, /src/index.css[22m
+[2m23:09:03[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/App.jsx, /src/index.css[22m
+[2m23:09:38[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/App.jsx, /src/index.css[22m
+[2m23:10:15[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/App.jsx, /src/index.css[22m
+[2m23:10:31[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/App.jsx, /src/index.css[22m
+[2m23:16:06[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/App.jsx, /src/index.css[22m
+[2m23:16:06[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/components/views/SecondaryViews.jsx, /src/index.css[22m
+[2m00:03:49[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/App.jsx, /src/index.css[22m
+[2m00:03:52[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/App.jsx, /src/index.css[22m
+[2m00:03:56[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/App.jsx, /src/index.css[22m
+[2m00:04:17[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/App.jsx, /src/index.css[22m
+[2m00:04:19[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/App.jsx, /src/index.css[22m
+[2m00:04:21[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/App.jsx, /src/index.css[22m
+[2m00:04:23[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/App.jsx, /src/index.css[22m
+[2m00:05:17[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/App.jsx, /src/index.css[22m
+[2m00:10:28[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/App.jsx, /src/index.css[22m
+[2m00:11:21[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/App.jsx, /src/index.css[22m
+[2m00:14:49[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/App.jsx, /src/index.css[22m
+[2m00:21:34[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/components/AboutModal.jsx, /src/index.css[22m
+[2m00:21:34[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/components/AboutModal.jsx, /src/index.css[22m
+[2m00:21:34[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/components/MeetingsImportPreviewModal.jsx, /src/index.css[22m
+[2m00:21:34[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/features/assignments/AssignmentsMonth.jsx, /src/index.css[22m
+[2m00:21:34[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/features/meetings/MeetingsView.jsx, /src/index.css[22m
+[2m00:21:34[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/features/talks/TalksView.jsx, /src/index.css[22m
+[2m00:21:34[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/features/assignments/AssignmentsMonth.jsx, /src/index.css[22m
+[2m00:22:25[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/features/meetings/MeetingsView.jsx, /src/index.css[22m
+[2m00:22:25[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/features/talks/TalksView.jsx, /src/index.css[22m
+[2m00:23:50[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/components/BottomNav.jsx, /src/index.css[22m
+[2m00:23:50[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/features/talks/TalksView.jsx, /src/index.css[22m
+[2m00:24:20[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/features/meetings/MeetingsView.jsx, /src/index.css[22m
+[2m00:24:20[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/index.css, /src/App.jsx, /src/features/talks/TalksView.jsx[22m
+[2m00:25:01[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/features/meetings/MeetingsView.jsx, /src/index.css[22m
+[2m00:26:10[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/features/talks/TalksView.jsx, /src/index.css[22m
+[2m00:36:31[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/features/talks/TalksView.jsx, /src/index.css[22m
+[2m00:36:31[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/features/assignments/AssignmentsMonth.jsx, /src/index.css[22m
+[2m00:36:31[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/features/meetings/MeetingsView.jsx, /src/index.css[22m
+[2m00:36:31[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/components/AboutModal.jsx, /src/index.css[22m
+[2m00:36:31[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/components/MeetingsImportPreviewModal.jsx, /src/index.css[22m
+[2m00:36:31[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/components/BottomNav.jsx, /src/index.css[22m
+[2m00:36:31[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/index.css, /src/App.jsx, /src/features/talks/TalksView.jsx[22m

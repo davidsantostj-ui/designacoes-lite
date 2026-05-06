@@ -1,0 +1,181 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isNotAnonymous() {
+      return isSignedIn()
+        && request.auth.token.firebase.sign_in_provider != 'anonymous';
+    }
+
+    function userDoc() {
+      return isNotAnonymous()
+        && exists(/databases/$(database)/documents/users/$(request.auth.uid))
+        ? get(/databases/$(database)/documents/users/$(request.auth.uid)).data
+        : {};
+    }
+
+    function isBootstrapAdminUid() {
+      return isSignedIn()
+        && [
+          'Y93qpOE5dHUpvHvRMyNpAfo9wwQ2',
+          'ZfQXTFDszIgJCPxwm5nenkydrmL2'
+        ].hasAny([request.auth.uid]);
+    }
+
+    function isAdmin() {
+      return isSignedIn() && (userDoc().isAdmin == true || isBootstrapAdminUid());
+    }
+
+    function isApproved() {
+      return isSignedIn() && (userDoc().approved == true || isBootstrapAdminUid());
+    }
+
+    function hasOnlyKeys(data, allowedKeys) {
+      return data.keys().hasOnly(allowedKeys);
+    }
+
+    function isValidUserProfileCreate(userId, approvedValue, adminValue) {
+      return request.auth.uid == userId
+        && hasOnlyKeys(
+          request.resource.data,
+          [
+            'name',
+            'surname',
+            'phone',
+            'email',
+            'approved',
+            'isAdmin',
+            'assignmentCapabilities',
+            'created_at',
+            'last_active'
+          ]
+        )
+        && request.resource.data.name is string
+        && request.resource.data.surname is string
+        && request.resource.data.phone is string
+        && request.resource.data.email is string
+        && request.resource.data.approved == approvedValue
+        && request.resource.data.isAdmin == adminValue
+        && request.resource.data.assignmentCapabilities is map
+        && request.resource.data.created_at is timestamp
+        && request.resource.data.last_active is timestamp;
+    }
+
+    function isValidSelfUserUpdate() {
+      return request.resource.data.diff(resource.data).changedKeys().hasOnly(
+          [
+            'name',
+            'surname',
+            'phone',
+            'preferredLanguage',
+            'hidePhone',
+            'availabilityFrom',
+            'availabilityTo',
+            'availabilityNote',
+            'notificationsClearedAt',
+            'last_active'
+          ]
+        )
+        && request.resource.data.approved == resource.data.approved
+        && request.resource.data.isAdmin == resource.data.isAdmin
+        && request.resource.data.email == resource.data.email
+        && request.resource.data.assignmentCapabilities == resource.data.assignmentCapabilities;
+    }
+
+    function isAllowedSelfAssignmentStatus(nextStatus) {
+      return ['pendente', 'confirmado', 'troca'].hasAny([nextStatus]);
+    }
+
+    function canUpdateOwnAssignmentStatus() {
+      return isApproved()
+        && resource.data.usuario_id == request.auth.uid
+        && request.resource.data.usuario_id == resource.data.usuario_id
+        && request.resource.data.date == resource.data.date
+        && request.resource.data.tipo_designacao == resource.data.tipo_designacao
+        && request.resource.data.allowSwap == resource.data.allowSwap
+        && request.resource.data.diff(resource.data).changedKeys().hasOnly(['status'])
+        && isAllowedSelfAssignmentStatus(request.resource.data.status);
+    }
+
+    function canAcceptSwapAssignment() {
+      return isApproved()
+        && resource.data.status == 'troca'
+        && resource.data.allowSwap != false
+        && request.resource.data.diff(resource.data).changedKeys().hasOnly(['usuario_id', 'status'])
+        && request.resource.data.usuario_id == request.auth.uid
+        && request.resource.data.status == 'pendente'
+        && request.resource.data.date == resource.data.date
+        && request.resource.data.tipo_designacao == resource.data.tipo_designacao
+        && request.resource.data.allowSwap == resource.data.allowSwap;
+    }
+
+    function canAppendSelfReadBy() {
+      return request.resource.data.diff(resource.data).changedKeys().hasOnly(['read_by'])
+        && request.resource.data.read_by is list
+        && resource.data.read_by is list
+        && request.resource.data.read_by.hasAll(resource.data.read_by)
+        && request.resource.data.read_by.hasAny([request.auth.uid])
+        && request.resource.data.read_by.size() <= resource.data.read_by.size() + 1;
+    }
+
+    match /users/{userId} {
+      allow read: if isApproved() || request.auth.uid == userId;
+      allow create: if isValidUserProfileCreate(userId, false, false)
+        || (isBootstrapAdminUid() && isValidUserProfileCreate(userId, true, true));
+      allow update: if isAdmin() || (request.auth.uid == userId && isValidSelfUserUpdate());
+      allow delete: if isAdmin();
+    }
+
+    match /assignments/{assignmentId} {
+      allow read: if isApproved();
+      allow create, delete: if isAdmin();
+      allow update: if isAdmin() || canUpdateOwnAssignmentStatus() || canAcceptSwapAssignment();
+    }
+
+    match /meetings/{meetingId} {
+      allow read: if isSignedIn();
+      allow create, update, delete: if isAdmin();
+    }
+
+    match /talks/{talkId} {
+      allow read: if isSignedIn();
+      allow create, update, delete: if isAdmin();
+    }
+
+    match /notifications/{notificationId} {
+      allow read: if isApproved();
+      allow create: if isAdmin();
+      allow update: if isAdmin() || (isApproved() && canAppendSelfReadBy());
+      allow delete: if isAdmin();
+    }
+
+    match /announcements/{announcementId} {
+      allow read: if isSignedIn();
+      allow create, delete: if isAdmin();
+      allow update: if isAdmin() || (isApproved() && canAppendSelfReadBy());
+    }
+
+    match /swap_logs/{logId} {
+      allow read: if isApproved();
+      allow create: if isApproved() && request.resource.data.actorId == request.auth.uid;
+      allow update, delete: if false;
+    }
+
+    match /specialEvents/{eventId} {
+      allow read: if isSignedIn();
+      allow create, update, delete: if isAdmin();
+    }
+
+    match /guest_config/{docId} {
+      allow read: if isSignedIn();
+      allow write: if isAdmin();
+    }
+
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}
