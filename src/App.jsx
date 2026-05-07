@@ -26,19 +26,20 @@ import ReloadPrompt from './components/ReloadPrompt';
 
 import {
   onAuthStateChanged,
-  signInWithEmail,
-  signUpWithEmail,
+  signInWithEmailAndPassword,
+  createUserWithEmailAndPassword,
   signOut,
-  resetPassword,
-  updatePassword,
+  signInAnonymously,
+  deleteUser,
   updateProfile,
-  getCurrentUser
-} from './services/supabaseAuth';
+  EmailAuthProvider,
+  reauthenticateWithCredential,
+  updatePassword,
+  sendPasswordResetEmail
+} from 'firebase/auth';
 
-import { auth, db, storage } from './services/firebase';
-import * as firebaseCompat from './services/firebaseCompat';
-
-const {
+import {
+  collection,
   getDoc,
   getDocs,
   addDoc,
@@ -47,14 +48,17 @@ const {
   setDoc,
   serverTimestamp,
   deleteDoc,
+  arrayUnion,
   writeBatch,
-  collection,
   query,
   where,
   orderBy,
   limit,
-  arrayUnion
-} = firebaseCompat;
+  startAfter
+} from 'firebase/firestore';
+
+import { auth, db, storage } from './services/firebase';
+
 import { createAppApi } from './services/appApi';
 import { sanitizeText } from './utils/textUtils';
 import { useMonthlyAssignments } from './hooks/useMonthlyAssignments';
@@ -150,9 +154,9 @@ const SecondaryViews = lazy(() => import('./components/views/SecondaryViews'));
 const GuestView = lazy(() => import('./features/guest/GuestView'));
 
 const ensureAuth = async () => {
-  const { data: { user } } = await supabase.auth.getUser();
-  if (!user) throw new Error('not-authenticated');
-  return user;
+  if (!auth.currentUser) throw new Error('not-authenticated');
+
+  return auth.currentUser;
 };
 
 const isAdminUid = (uid) => ADMIN_UIDS.includes(uid);
@@ -169,7 +173,7 @@ const EMPTY_MEETINGS_RECLASSIFY_STATE = {
   rows: []
 };
 
-const api = createAppApi({ ensureAuth, withRetry });
+const api = createAppApi({ auth, db, storage, ensureAuth, withRetry });
 
 const App = () => {
   const initialCache = getInitialCache();
@@ -305,7 +309,7 @@ const App = () => {
   const { originalAdmin, setOriginalAdmin, hasAdminAccess, isImpersonating, isRealAdminUser } =
     useAdminSession({
       authReady,
-      authUid: user?.id,
+      authUid: auth.currentUser?.uid,
       user,
       isAdminUid
     });
@@ -620,6 +624,8 @@ const App = () => {
     handleSendRecoveryEmail,
     handleTransferAssignments
   } = useAdminUserActions({
+    auth,
+    db,
     user,
     data,
     setData,
@@ -810,7 +816,7 @@ const App = () => {
   useEffect(() => {
     let alive = true;
 
-    const unsub = onAuthStateChanged(async (u) => {
+    const unsub = onAuthStateChanged(auth, async (u) => {
       if (!alive) return;
 
       if (!u) {
@@ -876,7 +882,7 @@ const App = () => {
             await setDoc(refDoc, payload, { merge: true });
             setUser({ id: u.uid, ...payload });
             if (!payload.isAdmin && !isRegisteringRef.current) {
-              await signOut();
+              await signOut(auth);
               addToast('Aguardando aprovação do Admin.', 'info');
             }
             return;
@@ -943,7 +949,7 @@ const App = () => {
         }
 
         if (!merged.isAdmin && merged.approved === false && !isRegisteringRef.current) {
-          await signOut();
+          await signOut(auth);
 
           addToast('Aguardando aprovação do Admin.', 'info');
 
@@ -1017,22 +1023,17 @@ const App = () => {
 
   const handleLogin = useCallback(
     async (e) => {
-      console.log('handleLogin called');
       e.preventDefault();
       if (isLoading) return;
       const form = e.target;
       const email = String(form.email?.value || '').trim();
       const password = String(form.password?.value || '');
-      console.log('Form data:', { email, password: '***' });
       if (!email || !password) return;
       setIsLoading(true);
       try {
-        console.log('Calling signInWithEmail...');
-        await signInWithEmail(email, password);
-        console.log('Login successful!');
+        await signInWithEmailAndPassword(auth, email, password);
         setLoginState('SIGNIN');
       } catch (err) {
-        console.log('Login error:', err);
         addToast('E-mail ou senha inválidos.', 'error');
       } finally {
         setIsLoading(false);
@@ -1050,7 +1051,7 @@ const App = () => {
       if (!email) return;
       setIsLoading(true);
       try {
-        await resetPassword(email);
+        await sendPasswordResetEmail(auth, email);
         addToast('Link enviado para seu e-mail.', 'success');
         setLoginState('SIGNIN');
       } catch (err) {
@@ -1081,28 +1082,29 @@ const App = () => {
       setIsLoading(true);
       isRegisteringRef.current = true;
       try {
-        const signUpResult = await signUpWithEmail(email, password);
-        const userId = signUpResult.user.id;
-        const fullName = `${name} ${surname}`.trim();
-        await updateProfile({ displayName: fullName });
+        const cred = await createUserWithEmailAndPassword(auth, email, password);
+        const displayName = `${name} ${surname}`.trim();
+        if (auth.currentUser) {
+          await updateProfile(auth.currentUser, { displayName });
+        }
         const payload = {
           name,
           surname,
           phone,
           email,
-          approved: isAdminUid(userId),
-          isAdmin: isAdminUid(userId),
+          approved: isAdminUid(cred.user.uid),
+          isAdmin: isAdminUid(cred.user.uid),
           assignmentCapabilities: getDefaultAssignmentCapabilities(),
           created_at: serverTimestamp(),
           last_active: serverTimestamp()
         };
-        await setDoc(doc(db, 'users', userId), payload, { merge: true });
+        await setDoc(doc(db, 'users', cred.user.uid), payload, { merge: true });
         if (!payload.isAdmin) {
-          await signOut();
+          await signOut(auth);
           addToast('Cadastro enviado. Aguarde aprovação do Admin.', 'info');
           setLoginState('SIGNIN');
         } else {
-          setUser({ id: userId, ...payload });
+          setUser({ id: cred.user.uid, ...payload });
         }
       } catch (err) {
         addToast('Erro ao criar cadastro.', 'error');
@@ -1116,7 +1118,7 @@ const App = () => {
 
   const handleLogout = useCallback(async () => {
     try {
-      await signOut();
+      await signOut(auth);
     } catch (err) {
     } finally {
       setOriginalAdmin(null);
@@ -1128,7 +1130,7 @@ const App = () => {
     if (isLoading) return;
     setIsLoading(true);
     try {
-      addToast('Login anônimo não disponível no Supabase.', 'info');
+      await signInAnonymously(auth);
     } catch (err) {
       addToast('Erro ao entrar como convidado.', 'error');
     } finally {
@@ -1138,15 +1140,15 @@ const App = () => {
 
   const handleGuestLogout = useCallback(async () => {
     try {
-      const currentUser = user;
+      const currentUser = auth.currentUser;
       if (currentUser?.isAnonymous) {
         await deleteUser(currentUser);
       } else {
-        await signOut();
+        await signOut(auth);
       }
     } catch (err) {
       // Se deleteUser falhar (token expirado), tenta signOut
-      try { await signOut(); } catch {}
+      try { await signOut(auth); } catch {}
     } finally {
       setUser(null);
     }
@@ -1165,12 +1167,11 @@ const App = () => {
         return;
       }
       try {
-        const currentUser = user;
+        const currentUser = auth.currentUser;
         if (!currentUser?.email) throw new Error('missing-user');
-        // Reauthenticate com Supabase (valida a senha atual)
-        await reauthenticate(currentUser.email, current);
-        // Update password usando Supabase
-        await updatePassword(n1);
+        const cred = EmailAuthProvider.credential(currentUser.email, current);
+        await reauthenticateWithCredential(currentUser, cred);
+        await updatePassword(currentUser, n1);
         addToast('Senha atualizada.', 'success');
         form.reset();
         setIsChangingPass(false);
@@ -1191,8 +1192,10 @@ const App = () => {
       const name = parts.shift() || '';
       const surname = parts.join(' ');
       try {
-        await updateProfile({ displayName: fullName });
-        await supabase.from('profiles').upsert({ id: user.id, display_name: fullName });
+        if (auth.currentUser) {
+          await updateProfile(auth.currentUser, { displayName: fullName });
+        }
+        await updateDoc(doc(db, 'users', user.id), { name, surname });
         setUser((prev) => (prev ? { ...prev, name, surname } : prev));
         addToast('Nome atualizado.', 'success');
       } catch (err) {
@@ -1781,7 +1784,7 @@ const App = () => {
   useEffect(() => {
     if (!authReady || isImpersonating) return;
 
-    const authUid = user?.id;
+    const authUid = auth.currentUser?.uid;
 
     if (!authUid) return;
 
@@ -2043,7 +2046,7 @@ const App = () => {
     formatAssignmentLabel
   });
 
-  const adminUserId = originalAdmin?.id || user?.id;
+  const adminUserId = originalAdmin?.id || auth.currentUser?.uid || user?.id;
   const adminUser =
     data.users.find((u) => u.id === adminUserId) ||
     (adminUserId === user?.id ? user : originalAdmin);

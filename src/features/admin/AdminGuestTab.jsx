@@ -1,12 +1,9 @@
-﻿import React, { useCallback, useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import {
   BookOpen,
   Globe,
   Link2,
-  Mail,
-  MapPin,
   Mic2,
-  Phone,
   Plus,
   RefreshCw,
   Save,
@@ -15,13 +12,14 @@ import {
   Trash2,
   Video
 } from 'lucide-react';
-import { supabase } from '../../services/supabase';
+import { doc, getDoc, setDoc } from 'firebase/firestore';
+import { db } from '../../services/firebase';
 
 const MAX_ACTIVITIES = 10;
 
 const ICON_OPTIONS = [
   { value: 'book', label: 'Livro', Icon: BookOpen },
-  { value: 'video', label: 'Video', Icon: Video },
+  { value: 'video', label: 'Vídeo', Icon: Video },
   { value: 'mic', label: 'Microfone', Icon: Mic2 },
   { value: 'sparkles', label: 'Estrela', Icon: Sparkles },
   { value: 'globe', label: 'Globo', Icon: Globe },
@@ -30,8 +28,7 @@ const ICON_OPTIONS = [
 
 const EMPTY_CONFIG = {
   activities: [],
-  links: { report: '', meeting: '', preaching: '', jw: 'https://www.jw.org' },
-  contactInfo: { phone: '', email: '', address: '' }
+  links: { report: '', meeting: '', preaching: '', jw: 'https://www.jw.org' }
 };
 
 const AdminGuestTab = ({ addToast }) => {
@@ -42,21 +39,16 @@ const AdminGuestTab = ({ addToast }) => {
   const loadConfig = useCallback(async () => {
     setIsLoading(true);
     try {
-      const { data, error } = await supabase
-        .from('guest_config')
-        .select('*')
-        .eq('id', 'main')
-        .single();
-      
-      if (data && !error) {
+      const snap = await getDoc(doc(db, 'guest_config', 'main'));
+      if (snap.exists()) {
+        const data = snap.data();
         setConfig({
           activities: data.activities || [],
-          links: { ...EMPTY_CONFIG.links, ...(data.links || {}) },
-          contactInfo: { ...EMPTY_CONFIG.contactInfo, ...(data.contactInfo || {}) }
+          links: { ...EMPTY_CONFIG.links, ...(data.links || {}) }
         });
       }
     } catch (err) {
-      addToast('Erro ao carregar configuracao do convidado.', 'error');
+      addToast('Erro ao carregar configuração do convidado.', 'error');
     } finally {
       setIsLoading(false);
     }
@@ -70,21 +62,14 @@ const AdminGuestTab = ({ addToast }) => {
     setIsSaving(true);
     try {
       const payload = {
-        id: 'main',
         ...config,
         activities: (config.activities || []).slice(0, MAX_ACTIVITIES),
         updated_at: new Date().toISOString()
       };
-      
-      const { error } = await supabase
-        .from('guest_config')
-        .upsert(payload, { onConflict: 'id' });
-      
-      if (error) throw error;
-      
-      addToast('Configuracao do convidado salva!', 'success');
+      await setDoc(doc(db, 'guest_config', 'main'), payload, { merge: true });
+      addToast('Configuração do convidado salva!', 'success');
     } catch (err) {
-      addToast('Erro ao salvar configuracao.', 'error');
+      addToast('Erro ao salvar configuração.', 'error');
     } finally {
       setIsSaving(false);
     }
@@ -132,9 +117,9 @@ const AdminGuestTab = ({ addToast }) => {
             Modo Convidado
           </h2>
           <p className="text-[11px] text-slate-500 dark:text-slate-400">
-            Configure links e sugestoes de atividades espirituais.
+            Configure links e sugestões de atividades espirituais.
             <br />
-            Reuniões, discursos, avisos e datas especiais sao carregados automaticamente do app.
+            Reuniões, discursos, avisos e datas especiais são carregados automaticamente do app.
           </p>
         </div>
         <div className="flex gap-2">
@@ -152,9 +137,9 @@ const AdminGuestTab = ({ addToast }) => {
       {/* ── INFO ── */}
       <div className="rounded-2xl border border-blue-200 bg-blue-50 px-4 py-3 dark:border-blue-800 dark:bg-blue-900/20">
         <p className="text-[11px] font-semibold text-blue-700 dark:text-blue-300">
-          ℹ️ Os dados de <strong>reuniões</strong>, <strong>discursos</strong>, <strong>avisos</strong> e <strong>datas especiais</strong> sao
-          exibidos automaticamente na tela do convidado a partir dos cadastros ja existentes no app.
-          Aqui voce configura apenas o que eh exclusivo da tela de convidado.
+          ℹ️ Os dados de <strong>reuniões</strong>, <strong>discursos</strong>, <strong>avisos</strong> e <strong>datas especiais</strong> são
+          exibidos automaticamente na tela do convidado a partir dos cadastros já existentes no app.
+          Aqui você configura apenas o que é exclusivo da tela de convidado.
         </p>
       </div>
 
@@ -164,7 +149,7 @@ const AdminGuestTab = ({ addToast }) => {
           <div className="flex items-center gap-2">
             <Sparkles size={16} className="text-violet-600" />
             <h3 className="text-sm font-black text-slate-900 dark:text-white">
-              Sugestoes de Atividades Espirituais
+              Sugestões de Atividades Espirituais
             </h3>
           </div>
           <span className="text-[10px] font-bold text-slate-400">
@@ -182,13 +167,13 @@ const AdminGuestTab = ({ addToast }) => {
                 <div className="flex-1 space-y-2">
                   <input
                     type="text"
-                    placeholder="Titulo (ex: Leitura da Semana)"
+                    placeholder="Título (ex: Leitura da Semana)"
                     value={activity.title}
                     onChange={(e) => updateActivity(idx, 'title', e.target.value)}
                     className="soft-input text-sm"
                   />
                   <textarea
-                    placeholder="Descricao (ex: Exodo 12-14 — Preparacao para reuniao)"
+                    placeholder="Descrição (ex: Êxodo 12-14 — Preparação para reunião)"
                     value={activity.description}
                     onChange={(e) => updateActivity(idx, 'description', e.target.value)}
                     rows={2}
@@ -238,20 +223,20 @@ const AdminGuestTab = ({ addToast }) => {
         </button>
       </section>
 
-      {/* ── LINKS RAPIDOS ── */}
+      {/* ── LINKS RÁPIDOS ── */}
       <section className="panel-card space-y-3">
         <div className="flex items-center gap-2">
           <Link2 size={16} className="text-blue-600" />
           <h3 className="text-sm font-black text-slate-900 dark:text-white">
-            Links Rapidos
+            Links Rápidos
           </h3>
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
           {[
-            { key: 'report', label: 'Enviar Relatorio', icon: Send },
-            { key: 'meeting', label: 'Link Reuniao', icon: Video },
-            { key: 'preaching', label: 'Link Pregacao', icon: Mic2 },
+            { key: 'report', label: 'Enviar Relatório', icon: Send },
+            { key: 'meeting', label: 'Link Reunião', icon: Video },
+            { key: 'preaching', label: 'Link Pregação', icon: Mic2 },
             { key: 'jw', label: 'JW Library', icon: Globe }
           ].map((item) => (
             <div key={item.key} className="space-y-1">
@@ -273,55 +258,6 @@ const AdminGuestTab = ({ addToast }) => {
               />
             </div>
           ))}
-        </div>
-      </section>
-
-      {/* ── INFORMACOES DE CONTATO ── */}
-      <section className="panel-card space-y-3">
-        <div className="flex items-center gap-2">
-          <Phone size={16} className="text-cyan-600" />
-          <h3 className="text-sm font-black text-slate-900 dark:text-white">Informacoes de Contato</h3>
-        </div>
-        <p className="text-[11px] text-slate-500 dark:text-slate-400">
-          Exibido na tela do convidado na secao "Fale com a Congregacao".
-        </p>
-        <div className="space-y-3">
-          <div className="space-y-1">
-            <label className="flex items-center gap-1.5 text-[10px] font-black uppercase tracking-widest text-slate-500">
-              <Phone size={12} /> Telefone
-            </label>
-            <input
-              type="tel"
-              placeholder="(00) 00000-0000"
-              value={config.contactInfo?.phone || ''}
-              onChange={(e) => setConfig((prev) => ({ ...prev, contactInfo: { ...prev.contactInfo, phone: e.target.value } }))}
-              className="soft-input text-sm"
-            />
-          </div>
-          <div className="space-y-1">
-            <label className="flex items-center gap-1.5 text-[10px] font-black uppercase tracking-widest text-slate-500">
-              <Mail size={12} /> E-mail
-            </label>
-            <input
-              type="email"
-              placeholder="congregacao@exemplo.com"
-              value={config.contactInfo?.email || ''}
-              onChange={(e) => setConfig((prev) => ({ ...prev, contactInfo: { ...prev.contactInfo, email: e.target.value } }))}
-              className="soft-input text-sm"
-            />
-          </div>
-          <div className="space-y-1">
-            <label className="flex items-center gap-1.5 text-[10px] font-black uppercase tracking-widest text-slate-500">
-              <MapPin size={12} /> Endereco do Salao
-            </label>
-            <input
-              type="text"
-              placeholder="Rua Exemplo, 123 — Cidade, UF"
-              value={config.contactInfo?.address || ''}
-              onChange={(e) => setConfig((prev) => ({ ...prev, contactInfo: { ...prev.contactInfo, address: e.target.value } }))}
-              className="soft-input text-sm"
-            />
-          </div>
         </div>
       </section>
 

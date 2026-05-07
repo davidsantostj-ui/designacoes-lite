@@ -1,7 +1,17 @@
-﻿import { supabase } from '../../services/supabase';
+import {
+  collection,
+  deleteDoc,
+  doc,
+  getDocs,
+  query,
+  serverTimestamp,
+  updateDoc,
+  where,
+  writeBatch
+} from 'firebase/firestore';
 import { filterCollection, mapCollection, patchCollectionItem } from '../../utils/dataStateUtils';
+import { sendPasswordResetEmail } from 'firebase/auth';
 import { getUserDisplayName, normalizePersonName } from '../../utils/textUtils';
-
 const normalizeDomain = (value) =>
   String(value || '')
     .trim()
@@ -27,18 +37,18 @@ export const useAdminUserActions = ({
 }) => {
   const handleUpdateApproval = async (uid, approved) => {
     try {
-      await supabase.from('users').update({ approved: !!approved }).eq('id', uid);
+      await updateDoc(doc(db, 'users', uid), { approved: !!approved });
       setData((prev) => patchCollectionItem(prev, 'users', uid, { approved }));
-      addToast('Aprovacao atualizada.', 'success');
+      addToast('Aprovação atualizada.', 'success');
     } catch (error) {
-      addToast('Erro ao atualizar aprovacao.', 'error');
+      addToast('Erro ao atualizar aprovação.', 'error');
     }
   };
 
   const handleApproveAll = async () => {
     const pendingUsers = (data.users || []).filter((entry) => !entry.approved);
     if (pendingUsers.length === 0) {
-      addToast('Nenhum cadastro pendente para aprobar.', 'info');
+      addToast('Nenhum cadastro pendente para aprovar.', 'info');
       return false;
     }
 
@@ -50,13 +60,11 @@ export const useAdminUserActions = ({
     if (!approved) return false;
 
     try {
-      const userIds = pendingUsers.map(u => u.id);
-      for (let i = 0; i < userIds.length; i += 450) {
-        const chunk = userIds.slice(i, i + 450);
-        for (const uid of chunk) {
-          await supabase.from('users').update({ approved: true }).eq('id', uid);
-        }
-      }
+      const batch = writeBatch(db);
+      pendingUsers.forEach((entry) => {
+        batch.update(doc(db, 'users', entry.id), { approved: true });
+      });
+      await batch.commit();
       setData((prev) => mapCollection(prev, 'users', (entry) => ({ ...entry, approved: true })));
       addToast('Todos aprovados.', 'success');
       return true;
@@ -69,11 +77,11 @@ export const useAdminUserActions = ({
   const handleApproveByDomain = async (rawDomain = '') => {
     const domain = normalizeDomain(rawDomain);
     if (!domain) {
-      addToast('Informe um dominio valido, por exemplo: exemplo.com.', 'warn');
+      addToast('Informe um domínio válido, por exemplo: exemplo.com.', 'warn');
       return false;
     }
     if (!isValidDomain(domain)) {
-      addToast('Dominio invalido. Use o formato exemplo.com.', 'warn');
+      addToast('Domínio inválido. Use o formato exemplo.com.', 'warn');
       return false;
     }
 
@@ -81,25 +89,23 @@ export const useAdminUserActions = ({
       (entry) => !entry.approved && (entry.email || '').toLowerCase().endsWith(`@${domain}`)
     );
     if (pendingUsers.length === 0) {
-      addToast('Nenhum usuario pendente encontrado para esse dominio.', 'info');
+      addToast('Nenhum usuário pendente encontrado para esse domínio.', 'info');
       return false;
     }
 
     const approved = await confirm({
-      title: 'Aprovar por dominio',
-      message: `Aprovar ${pendingUsers.length} cadastro(s) do dominio ${domain}?`,
+      title: 'Aprovar por domínio',
+      message: `Aprovar ${pendingUsers.length} cadastro(s) do domínio ${domain}?`,
       confirmText: 'Aprovar'
     });
     if (!approved) return false;
 
     try {
-      const userIds = pendingUsers.map(u => u.id);
-      for (let i = 0; i < userIds.length; i += 450) {
-        const chunk = userIds.slice(i, i + 450);
-        for (const uid of chunk) {
-          await supabase.from('users').update({ approved: true }).eq('id', uid);
-        }
-      }
+      const batch = writeBatch(db);
+      pendingUsers.forEach((entry) => {
+        batch.update(doc(db, 'users', entry.id), { approved: true });
+      });
+      await batch.commit();
       setData((prev) =>
         mapCollection(prev, 'users', (entry) =>
           (entry.email || '').toLowerCase().endsWith(`@${domain}`)
@@ -107,10 +113,10 @@ export const useAdminUserActions = ({
             : entry
         )
       );
-      addToast('Aprovacao em masa concluida.', 'success');
+      addToast('Aprovação em massa concluída.', 'success');
       return true;
     } catch (error) {
-      addToast('Erro ao aprovar por dominio.', 'error');
+      addToast('Erro ao aprovar por domínio.', 'error');
       return false;
     }
   };
@@ -123,7 +129,7 @@ export const useAdminUserActions = ({
   };
 
   const stopImpersonating = (nextView = 'DASHBOARD') => {
-    const authUid = user?.id;
+    const authUid = auth.currentUser?.uid;
     const adminUser = data.users.find((entry) => entry.id === authUid) || originalAdmin;
     if (adminUser) setUser(adminUser);
     setOriginalAdmin(null);
@@ -132,38 +138,38 @@ export const useAdminUserActions = ({
 
   const handleToggleAdminRole = async (uid, isAdmin) => {
     try {
-      await supabase.from('users').update({ isAdmin: !!isAdmin }).eq('id', uid);
+      await updateDoc(doc(db, 'users', uid), { isAdmin: !!isAdmin });
       setData((prev) => patchCollectionItem(prev, 'users', uid, { isAdmin }));
-      addToast('Permissao atualizada.', 'success');
+      addToast('Permissão atualizada.', 'success');
     } catch (error) {
-      addToast('Erro ao atualizar permissao.', 'error');
+      addToast('Erro ao atualizar permissão.', 'error');
     }
   };
 
   const handleDeleteUser = async (uid) => {
     const approved = await confirm({
-      title: 'Excluir usuario',
-      message: 'Deseja excluir este usuario?',
+      title: 'Excluir usuário',
+      message: 'Deseja excluir este usuário?',
       confirmText: 'Excluir'
     });
     if (!approved) return;
 
     try {
-      await supabase.from('users').delete().eq('id', uid);
+      await deleteDoc(doc(db, 'users', uid));
       setData((prev) => filterCollection(prev, 'users', (entry) => entry.id !== uid));
-      addToast('Usuario excluido.', 'success');
+      addToast('Usuário excluído.', 'success');
     } catch (error) {
-      addToast('Erro ao excluir usuario.', 'error');
+      addToast('Erro ao excluir usuário.', 'error');
     }
   };
 
   const handleAdminUpdateUserName = async (uid, name, surname) => {
     try {
-      await supabase.from('users').update({ name, surname }).eq('id', uid);
+      await updateDoc(doc(db, 'users', uid), { name, surname });
       setData((prev) => patchCollectionItem(prev, 'users', uid, { name, surname }));
-      addToast('Usuario atualizado.', 'success');
+      addToast('Usuário atualizado.', 'success');
     } catch (error) {
-      addToast('Erro ao atualizar usuario.', 'error');
+      addToast('Erro ao atualizar usuário.', 'error');
     }
   };
 
@@ -174,7 +180,7 @@ export const useAdminUserActions = ({
     }, {});
 
     try {
-      await supabase.from('users').update({ assignmentCapabilities: normalizedCapabilities }).eq('id', uid);
+      await updateDoc(doc(db, 'users', uid), { assignmentCapabilities: normalizedCapabilities });
       setData((prev) =>
         patchCollectionItem(prev, 'users', uid, {
           assignmentCapabilities: normalizedCapabilities
@@ -183,7 +189,7 @@ export const useAdminUserActions = ({
       setUser((prev) =>
         prev && prev.id === uid ? { ...prev, assignmentCapabilities: normalizedCapabilities } : prev
       );
-      addToast('Atribuicoes atualizadas.', 'success');
+      addToast('Atribuições atualizadas.', 'success');
     } catch (error) {
       addToast('Erro ao atualizar atribuições.', 'error');
     }
@@ -196,22 +202,22 @@ export const useAdminUserActions = ({
     if (!message) return;
 
     try {
-      const notifications = (data.users || [])
+      const batch = writeBatch(db);
+      (data.users || [])
         .filter((entry) => entry.approved)
-        .map((entry) => ({
-          id: `notif_${Date.now()}_${Math.random().toString(36).slice(2, 8)}_${entry.id}`,
-          text: message,
-          authorId: user?.id || '',
-          targetUserId: entry.id,
-          created_at: new Date().toISOString(),
-          type: 'broadcast',
-          targetView: 'NOTICES',
-          read_by: []
-        }));
-      
-      if (notifications.length > 0) {
-        await supabase.from('notifications').insert(notifications);
-      }
+        .forEach((entry) => {
+          const refDoc = doc(collection(db, 'notifications'));
+          batch.set(refDoc, {
+            text: message,
+            authorId: user?.id || '',
+            targetUserId: entry.id,
+            created_at: serverTimestamp(),
+            type: 'broadcast',
+            targetView: 'NOTICES',
+            read_by: []
+          });
+        });
+      await batch.commit();
       addToast('Comunicado enviado.', 'success');
       form.reset();
     } catch (error) {
@@ -221,101 +227,92 @@ export const useAdminUserActions = ({
 
   const handleSendRecoveryEmail = async (email) => {
     if (!email) {
-      addToast('Este usuario nao possui e-mail cadastrado.', 'warn');
+      addToast('Este usuário não possui e-mail cadastrado.', 'warn');
       return false;
     }
 
     const approved = await confirm({
-      title: 'Enviar Recuperacao de Senha',
-      message: `Enviar e-mail de redefinicao de senha para ${email}?`,
+      title: 'Enviar Recuperação de Senha',
+      message: `Enviar e-mail de redefinição de senha para ${email}?`,
       confirmText: 'Enviar'
     });
     if (!approved) return false;
 
     try {
-      const { error } = await supabase.auth.resetPasswordForEmail(email, {
-        redirectTo: `${window.location.origin}/reset-password`,
-      });
-      
-      if (error) throw error;
-      
-      addToast('E-mail de recuperacao enviado com sucesso.', 'success');
+      await sendPasswordResetEmail(auth, email);
+      addToast('E-mail de recuperação enviado com sucesso.', 'success');
       return true;
     } catch (error) {
       console.error(error);
-      addToast('Erro ao enviar e-mail de recuperacao.', 'error');
+      addToast('Erro ao enviar e-mail de recuperação.', 'error');
       return false;
     }
   };
 
   const handleTransferAssignments = async (fromUid, toUid) => {
     if (!fromUid || !toUid || fromUid === toUid) {
-      addToast('Selecione usuarios diferentes.', 'warn');
+      addToast('Selecione usuários diferentes.', 'warn');
       return false;
     }
 
     const fromUser = (data.users || []).find((u) => u.id === fromUid);
     const toUser = (data.users || []).find((u) => u.id === toUid);
     if (!fromUser || !toUser) {
-      addToast('Usuarios nao encontrados.', 'error');
+      addToast('Usuários não encontrados.', 'error');
       return false;
     }
 
     const toUserName = getUserDisplayName(toUser);
     const toUserNormName = normalizePersonName(toUserName);
 
-    const { data: assignmentsData } = await supabase
-      .from('assignments')
-      .select('id')
-      .eq('usuario_id', fromUid);
-    const count = assignmentsData?.length || 0;
+    const assignmentsRef = collection(db, 'assignments');
+    const q = query(assignmentsRef, where('usuario_id', '==', fromUid));
+    const snapshot = await getDocs(q);
+    const count = snapshot.size;
 
-    const { data: meetingsData } = await supabase
-      .from('meetings')
-      .select('id')
-      .eq('user_id', fromUid);
-    const meetingsCount = meetingsData?.length || 0;
+    const meetingsRef = collection(db, 'meetings');
+    const qMeetings = query(meetingsRef, where('user_id', '==', fromUid));
+    const meetingsSnapshot = await getDocs(qMeetings);
+    const meetingsCount = meetingsSnapshot.size;
 
     if (count === 0 && meetingsCount === 0) {
-      addToast('Nenhuma designacao encontrada para transferir.', 'info');
+      addToast('Nenhuma designação encontrada para transferir.', 'info');
       return false;
     }
 
     const totalToTransfer = Math.max(count, meetingsCount);
 
     const approved = await confirm({
-      title: 'Transferir Designacoes',
-      message: `Transferir designacao(oes) de "${fromUser.name || 'Usuario'}" para "${toUser.name || 'Usuario'}"?`,
+      title: 'Transferir Designações',
+      message: `Transferir designação(ões) de "${fromUser.name || 'Usuário'}" para "${toUser.name || 'Usuário'}"?`,
       confirmText: 'Transferir'
     });
     if (!approved) return false;
 
     try {
-      // Transfer assignments
-      if (count > 0) {
-        const assignmentIds = assignmentsData.map(a => a.id);
-        for (let i = 0; i < assignmentIds.length; i += 450) {
-          const chunk = assignmentIds.slice(i, i + 450);
-          for (const id of chunk) {
-            await supabase.from('assignments').update({ usuario_id: toUid }).eq('id', id);
-          }
-        }
+      const docsArr = snapshot.docs;
+      for (let i = 0; i < docsArr.length; i += 400) {
+        const batch = writeBatch(db);
+        const chunk = docsArr.slice(i, i + 400);
+        chunk.forEach((docSnap) => {
+          batch.update(docSnap.ref, { usuario_id: toUid });
+        });
+        await batch.commit();
       }
 
-      // Transfer meetings
-      if (meetingsCount > 0) {
-        const meetingIds = meetingsData.map(m => m.id);
-        for (let i = 0; i < meetingIds.length; i += 450) {
-          const chunk = meetingIds.slice(i, i + 450);
-          for (const id of chunk) {
-            await supabase.from('meetings').update({ 
-              user_id: toUid,
-              participant_name: toUserName,
-              participant_name_norm: toUserNormName,
-              match_state: 'linked'
-            }).eq('id', id);
-          }
-        }
+      const meetingsArr = meetingsSnapshot.docs;
+      for (let i = 0; i < meetingsArr.length; i += 400) {
+        const batch = writeBatch(db);
+        const chunk = meetingsArr.slice(i, i + 400);
+        chunk.forEach((docSnap) => {
+          batch.update(docSnap.ref, { 
+            user_id: toUid,
+            participant_name: toUserName,
+            participant_name_norm: toUserNormName,
+            match_state: 'linked'
+          });
+        });
+        await batch.commit();
       }
 
       // Update local state to immediately show changes without reloading
@@ -343,11 +340,11 @@ export const useAdminUserActions = ({
         return { ...prev, assignments: updatedAssignments, meetings: updatedMeetings };
       });
 
-      addToast(`Designacao(oes) transferida(s) com sucesso.`, 'success');
+      addToast(`Designação(ões) transferida(s) com sucesso.`, 'success');
       return true;
     } catch (error) {
       console.error(error);
-      addToast('Erro ao transferir designacoes.', 'error');
+      addToast('Erro ao transferir designações.', 'error');
       return false;
     }
   };

@@ -1,5 +1,5 @@
 import { useCallback, useState } from 'react';
-import { supabase } from '../services/supabase';
+import { collection, getDocs, orderBy, query, serverTimestamp, where } from 'firebase/firestore';
 import { normalizeAssignmentType } from '../utils/assignmentUtils';
 import { normalizeCsvDate, parseCsv } from '../utils/csvUtils';
 import {
@@ -105,7 +105,7 @@ export const useMeetingsImportActions = ({
                 designationOrder: isMeetingJewelsDesignation(row.designation)
                   ? 2
                   : Math.max(1, Number(value || 1))
-            }
+              }
             : row
         )
       )
@@ -126,7 +126,7 @@ export const useMeetingsImportActions = ({
     async (file) => {
       if (!file) return;
       if (isImportingMeetings) return;
-      if (!(await guardAdminAction('Apenas administradores podem importar programacao de reunioes.'))) {
+      if (!(await guardAdminAction('Apenas administradores podem importar programa√ß√£o de reuni√µes.'))) {
         return;
       }
 
@@ -142,12 +142,12 @@ export const useMeetingsImportActions = ({
         const hasDateColumn = headers.includes('data') || headers.includes('date') || headers.includes('dia');
         const hasDesignationColumn =
           headers.includes('designacao') ||
-          headers.includes('designaÁ„o') ||
+          headers.includes('designa√ß√£o') ||
           headers.includes('tarefa') ||
           headers.includes('tipo');
         const hasSectionColumn =
           headers.includes('secao') ||
-          headers.includes('seÁ„o') ||
+          headers.includes('se√ß√£o') ||
           headers.includes('section');
         const hasOrderColumn = headers.includes('ordem') || headers.includes('order');
         const hasPrincipalColumn = headers.includes('principal') || headers.includes('nome');
@@ -164,7 +164,7 @@ export const useMeetingsImportActions = ({
 
         if (!hasDateColumn || !hasDesignationColumn || !hasPrincipalColumn || !hasAssistantColumn) {
           addToast(
-            'CSV fora do modelo esperado. Baixe o modelo de Reuniıes e exporte novamente.',
+            'CSV fora do modelo esperado. Baixe o modelo de Reuni√µes e exporte novamente.',
             'warn'
           );
           return;
@@ -231,9 +231,9 @@ export const useMeetingsImportActions = ({
 
         rows.forEach((row, index) => {
           const date = normalizeCsvDate(row.data || row.date || row.dia || '');
-          const rawSection = row.secao || row['seÁ„o'] || row.section || '';
+          const rawSection = row.secao || row['se√ß√£o'] || row.section || '';
           const rawOrder = row.ordem || row.order || '';
-          const designationAlt = row['designaÁ„o'] || '';
+          const designationAlt = row['designa√ß√£o'] || '';
           const assistantName =
             row.ajudante_leitor ||
             row['ajudante/leitor'] ||
@@ -273,7 +273,7 @@ export const useMeetingsImportActions = ({
         });
 
         if (!preparedEntries.length) {
-          addToast('Nenhuma linha valida para Reuniıes.', 'warn');
+          addToast('Nenhuma linha v√°lida para Reuni√µes.', 'warn');
           return;
         }
 
@@ -315,28 +315,30 @@ export const useMeetingsImportActions = ({
 
         if (minDate && maxDate) {
           try {
-            const { data: meetingsData } = await supabase
-              .from('meetings')
-              .select('*')
-              .gte('date', minDate)
-              .lte('date', maxDate)
-              .order('date');
-            
-            if (meetingsData) meetingsData.forEach(collectMeetingKey);
+            const snap = await getDocs(
+              query(
+                collection(db, 'meetings'),
+                where('date', '>=', minDate),
+                where('date', '<=', maxDate),
+                orderBy('date')
+              )
+            );
+            snap.forEach((docSnap) => collectMeetingKey(docSnap.data()));
           } catch (error) {
             console.error(error);
             (meetings || []).forEach((entry) => collectMeetingKey(entry));
           }
 
           try {
-            const { data: assignmentsData } = await supabase
-              .from('assignments')
-              .select('*')
-              .gte('date', minDate)
-              .lte('date', maxDate)
-              .order('date');
-            
-            if (assignmentsData) assignmentsData.forEach(collectAssignmentKey);
+            const snap = await getDocs(
+              query(
+                collection(db, 'assignments'),
+                where('date', '>=', minDate),
+                where('date', '<=', maxDate),
+                orderBy('date')
+              )
+            );
+            snap.forEach((docSnap) => collectAssignmentKey(docSnap.data()));
           } catch (error) {
             console.error(error);
             (assignments || []).forEach((entry) => collectAssignmentKey(entry));
@@ -396,7 +398,7 @@ export const useMeetingsImportActions = ({
         });
 
         if (!previewRows.length) {
-          addToast('Nenhuma nova participaÁ„o para importar.', 'info');
+          addToast('Nenhuma nova participa√ß√£o para importar.', 'info');
           return;
         }
 
@@ -412,16 +414,16 @@ export const useMeetingsImportActions = ({
           skippedCsv
         });
 
-        addToast('PrÈvia de importaÁ„o pronta para revis„o.', 'info');
+        addToast('Pr√©via de importa√ß√£o pronta para revis√£o.', 'info');
       } catch (error) {
         console.error(error);
         if (error?.code === 'permission-denied') {
           addToast(
-            'Sem permiss„o para salvar Reuniıes. Publique as regras do Firestore antes de importar.',
+            'Sem permiss√£o para salvar Reuni√µes. Publique as regras do Firestore antes de importar.',
             'error'
           );
         } else {
-          addToast('Erro ao importar Reuniıes.', 'error');
+          addToast('Erro ao importar Reuni√µes.', 'error');
         }
       } finally {
         setIsImportingMeetings(false);
@@ -450,7 +452,7 @@ export const useMeetingsImportActions = ({
         return;
       }
       if (isImportingMeetings) return;
-      if (!(await guardAdminAction('Apenas administradores podem confirmar importacoes de reunioes.'))) {
+      if (!(await guardAdminAction('Apenas administradores podem confirmar importa√ß√µes de reuni√µes.'))) {
         return;
       }
 
@@ -478,7 +480,7 @@ export const useMeetingsImportActions = ({
 
       if (ineligibleAgendaRows.length > 0) {
         addToast(
-          'Ha vinculos com usuarios que nao estao habilitados para a designacao escolhida.',
+          'H√° v√≠nculos com usu√°rios que n√£o est√£o habilitados para a designa√ß√£o escolhida.',
           'warn'
         );
         return;
@@ -519,7 +521,6 @@ export const useMeetingsImportActions = ({
           ].join('|');
 
           meetingPayloads.push({
-            id: `meeting_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`,
             date: row.date,
             designation: meetingDesignation,
             sync_key: row.syncKey,
@@ -542,7 +543,7 @@ export const useMeetingsImportActions = ({
             import_batch_label: batchLabel,
             imported_at_ms: importedAtMs,
             sort_key: sortKey,
-            created_at: new Date().toISOString(),
+            created_at: serverTimestamp(),
             created_by: userId || ''
           });
 
@@ -579,7 +580,7 @@ export const useMeetingsImportActions = ({
         });
 
         if (!meetingPayloads.length) {
-          addToast('Nenhuma nova participaÁ„o para importar.', 'info');
+          addToast('Nenhuma nova participa√ß√£o para importar.', 'info');
           closeMeetingsImportPreview();
           return;
         }
@@ -598,25 +599,25 @@ export const useMeetingsImportActions = ({
         });
         closeMeetingsImportPreview();
 
-        addToast(`ImportaÁ„o de Reuniıes concluÌda: ${meetingPayloads.length}.`, 'success');
+        addToast(`Importa√ß√£o de Reuni√µes conclu√≠da: ${meetingPayloads.length}.`, 'success');
         if (assignmentPayloads.length > 0) {
-          addToast(`${assignmentPayloads.length} participaÁ„o(ıes) entrou(aram) na agenda.`, 'info');
+          addToast(`${assignmentPayloads.length} participa√ß√£o(√µes) entrou(aram) na agenda.`, 'info');
         }
         if (externalCount > 0) {
-          addToast(`${externalCount} participaÁ„o(ıes) ficou(aram) sÛ em Reuniıes.`, 'info');
+          addToast(`${externalCount} participa√ß√£o(√µes) ficou(aram) s√≥ em Reuni√µes.`, 'info');
         }
         if (ambiguousCount > 0) {
-          addToast(`${ambiguousCount} nome(s) ficaram com possÌvel vÌnculo.`, 'warn');
+          addToast(`${ambiguousCount} nome(s) ficaram com poss√≠vel v√≠nculo.`, 'warn');
         }
         if (skippedExistingAssignments > 0) {
-          addToast(`DesignaÁıes j· existentes ignoradas: ${skippedExistingAssignments}.`, 'info');
+          addToast(`Designa√ß√µes j√° existentes ignoradas: ${skippedExistingAssignments}.`, 'info');
         }
       } catch (error) {
         console.error(error);
         if (error?.code === 'permission-denied') {
-          addToast('Sem permiss„o para salvar Reuniıes. Verifique as regras do Firestore.', 'error');
+          addToast('Sem permiss√£o para salvar Reuni√µes. Verifique as regras do Firestore.', 'error');
         } else {
-          addToast('Erro ao confirmar a importaÁ„o de Reuniıes.', 'error');
+          addToast('Erro ao confirmar a importa√ß√£o de Reuni√µes.', 'error');
         }
       } finally {
         setIsImportingMeetings(false);
@@ -649,8 +650,3 @@ export const useMeetingsImportActions = ({
     isImportingMeetings
   };
 };
-
-
-
-
-

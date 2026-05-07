@@ -28,7 +28,9 @@ import {
 import { useGuestData } from '../../hooks/useGuestData';
 import SkeletonBlock from '../../components/SkeletonBlock';
 import { getEventMeta, getEventColors } from '../../utils/specialEventsUtils';
-
+import { getMeetingSyncMetaForAssignmentType } from '../../utils/meetingImportUtils';
+import { isMechanicalAssignment, formatAssignmentLabel } from '../../utils/assignmentUtils';
+import { MECHANICAL_ASSIGNMENT_TYPES } from '../../constants/appConstants';
 
 const ICON_MAP = {
   book: BookOpen,
@@ -41,13 +43,15 @@ const ICON_MAP = {
   megaphone: Megaphone
 };
 
-
+const MECHANICAL_ORDER_MAP = new Map(
+  MECHANICAL_ASSIGNMENT_TYPES.map((type, index) => [type, index + 1])
+);
 
 const SECTION_META = {
   abertura: { key: 'abertura', label: 'Abertura', order: 1, accentClass: 'bg-sky-500', textClass: 'text-sky-900 dark:text-sky-200' },
   tesouros: { key: 'tesouros', label: 'Tesouros da Palavra de Deus', order: 2, accentClass: 'bg-orange-500', textClass: 'text-orange-900 dark:text-orange-200' },
-  ministerio: { key: 'ministerio', label: 'Faça Seu Melhor no Ministério', order: 3, accentClass: 'bg-emerald-500', textClass: 'text-emerald-900 dark:text-emerald-200' },
-  vida_crista: { key: 'vida_crista', label: 'Nossa Vida Cristã', order: 4, accentClass: 'bg-amber-500', textClass: 'text-amber-900 dark:text-amber-200' },
+  ministerio: { key: 'ministerio', label: 'Faca Seu Melhor no Ministerio', order: 3, accentClass: 'bg-emerald-500', textClass: 'text-emerald-900 dark:text-emerald-200' },
+  vida_crista: { key: 'vida_crista', label: 'Nossa Vida Crista', order: 4, accentClass: 'bg-amber-500', textClass: 'text-amber-900 dark:text-amber-200' },
   encerramento: { key: 'encerramento', label: 'Encerramento', order: 5, accentClass: 'bg-slate-500', textClass: 'text-slate-800 dark:text-slate-200' },
   programa: { key: 'programa', label: 'Programa', order: 6, accentClass: 'bg-violet-500', textClass: 'text-violet-900 dark:text-violet-200' }
 };
@@ -290,6 +294,28 @@ const buildGroupedMeetings = (meetingsData) => {
   });
 };
 
+const buildMechanicalAssignments = (assignments) => {
+  return (assignments || [])
+    .filter((a) => {
+      if (!a?.date) return false;
+      if (a?.status === 'rejeitado') return false;
+      return isMechanicalAssignment(a.tipo_designacao);
+    })
+    .map((a) => ({
+      id: `mechanical:${a.id}`,
+      date: a.date,
+      designation: formatAssignmentLabel(a.tipo_designacao || 'Designação mecânica'),
+      participantName: a.participant_name || 'Sem publicador',
+      sortOrder: MECHANICAL_ORDER_MAP.get(a.tipo_designacao) || 999
+    }))
+    .sort((a, b) => {
+      const byDate = String(a.date || '').localeCompare(String(b.date || ''));
+      if (byDate !== 0) return byDate;
+      const byOrder = Number(a.sortOrder || 999) - Number(b.sortOrder || 999);
+      if (byOrder !== 0) return byOrder;
+      return String(a.designation || '').localeCompare(String(b.designation || ''));
+    });
+};
 
 const groupByMonth = (items) => {
   const groups = {};
@@ -500,21 +526,54 @@ const SpecialEventCard = ({ event }) => {
 };
 
 const GuestView = ({ onLogout, onRegister }) => {
-  const { guestConfig, meetings, talks, announcements, specialEvents, isLoading, error, lastFetchedAt, refresh } = useGuestData();
-
-  // contactInfo lido de guestConfig.contactInfo (eliminando a coleção congregation_info)
-  const contactInfo = guestConfig?.contactInfo || null;
+  const { guestConfig, meetings, assignments, talks, announcements, specialEvents, contactInfo, isLoading, error, refresh } = useGuestData();
 
   const greeting = useMemo(() => getGreeting(), []);
   const links = guestConfig?.links || {};
   const activities = guestConfig?.activities || [];
 
-  // Assignments são bloqueados por isApproved() nas Firestore Rules para usuários
-  // anônimos — usamos apenas os dados já embutidos na coleção meetings (via import).
-  const mergedMeetingsData = useMemo(() => meetings || [], [meetings]);
+  const mergedMeetingsData = useMemo(() => {
+    const merged = [...(meetings || [])];
+    
+    (assignments || []).forEach((assignment) => {
+      if (!assignment?.date) return;
+      if (assignment?.source === 'meeting_import') return;
+      if (assignment?.show_in_meetings !== true) return;
+      if (assignment?.status === 'rejeitado') return;
+      if (isMechanicalAssignment(assignment?.tipo_designacao)) return;
 
-  // Designações mecânicas não estão disponíveis para convidados anônimos
-  const mechanicalAssignments = useMemo(() => [], []);
+      const meta = getMeetingSyncMetaForAssignmentType(assignment.tipo_designacao);
+      if (!meta) return;
+
+      const participantName = assignment.participant_name;
+      if (!participantName) return;
+
+      merged.push({
+        id: `assignment:${assignment.id}`,
+        date: assignment.date,
+        designation: meta.designation,
+        sync_key: `${assignment.date}|${meta.assignmentType}`,
+        section_key: meta.sectionKey,
+        section_label: meta.sectionLabel,
+        section_order: meta.sectionOrder,
+        designation_order: meta.designationOrder,
+        role_type: meta.roleType,
+        role_label: meta.roleLabel,
+        assignment_type: meta.assignmentType,
+        role_order: meta.roleOrder,
+        participant_name: participantName,
+        participant_name_norm: normalizeText(participantName),
+        user_id: assignment.usuario_id,
+        match_state: 'linked',
+        import_source: 'assignments_sync',
+        import_line: 0
+      });
+    });
+    
+    return merged;
+  }, [meetings, assignments]);
+
+  const mechanicalAssignments = useMemo(() => buildMechanicalAssignments(assignments), [assignments]);
 
   const groupedMeetings = useMemo(() => buildGroupedMeetings(mergedMeetingsData), [mergedMeetingsData]);
   const meetingsByMonth = useMemo(() => groupByMonth(groupedMeetings), [groupedMeetings]);
@@ -600,7 +659,7 @@ const GuestView = ({ onLogout, onRegister }) => {
     }
   }, [refresh]);
 
-  if (isLoading && !meetings.length) {
+  if (isLoading && !meetings.length && !assignments.length) {
     return (
       <div className="h-full overflow-y-auto bg-transparent flex flex-col items-center justify-center p-6">
         <div className="w-full max-w-2xl space-y-4">
@@ -617,7 +676,7 @@ const GuestView = ({ onLogout, onRegister }) => {
     );
   }
 
-  const hasContent = guestConfig || mergedMeetingsData.length > 0 || talks.length > 0 || announcements.length > 0 || specialEvents.length > 0;
+  const hasContent = guestConfig || mergedMeetingsData.length > 0 || mechanicalAssignments.length > 0 || talks.length > 0 || announcements.length > 0 || specialEvents.length > 0;
 
   return (
     <div className="h-full overflow-y-auto bg-transparent text-slate-900 dark:text-slate-100">
@@ -975,15 +1034,13 @@ const GuestView = ({ onLogout, onRegister }) => {
           </section>
         )}
 
-        <footer className="mt-8 text-center py-4">
-          <p className="text-[11px] text-slate-400 dark:text-slate-500">
+        <footer className="mt-8 border-t border-slate-200 bg-white py-6 text-center dark:border-navy-600 dark:bg-navy-800">
+          <p className="text-sm text-slate-500 dark:text-slate-400">
             © {new Date().getFullYear()} {guestConfig?.congregation_name || 'Minhas Designações'}
           </p>
-          {lastFetchedAt && (
-            <p className="mt-1 text-[10px] text-slate-300 dark:text-slate-600">
-              Dados de {lastFetchedAt.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}
-            </p>
-          )}
+          <p className="mt-1 text-xs text-slate-400 dark:text-slate-500">
+            Atualizado em {new Date().toLocaleDateString('pt-BR', { day: 'numeric', month: 'long', year: 'numeric' })}
+          </p>
         </footer>
 
       </div>

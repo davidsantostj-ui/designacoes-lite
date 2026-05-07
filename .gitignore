@@ -4,5 +4,3 @@ firebase-debug.log
 firestore-debug.log
 *.tmp.png
 .firebase
-
-.vercel

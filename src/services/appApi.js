@@ -1,8 +1,20 @@
-import { supabase } from './supabase';
+import {
+  addDoc,
+  collection,
+  deleteDoc,
+  doc,
+  getDocs,
+  query,
+  serverTimestamp,
+  startAfter,
+  writeBatch,
+  limit
+} from 'firebase/firestore';
+import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 import { sanitizeText } from '../utils/textUtils';
 
-const BACKUP_TABLES = [
-  'profiles',
+const BACKUP_COLLECTIONS = [
+  'users',
   'assignments',
   'meetings',
   'talks',
@@ -11,17 +23,15 @@ const BACKUP_TABLES = [
   'swap_logs',
   'specialEvents',
   'audit_logs',
-  'swap_requests',
-  'app_settings'
+  'swap_requests'
 ];
 
 export function createAppApi({ auth, db, storage, ensureAuth, withRetry }) {
   const ensureSignedIn = ensureAuth
     ? ensureAuth
     : async () => {
-        const { data: { user } } = await supabase.auth.getUser();
-        if (!user) throw new Error('not-authenticated');
-        return user;
+        if (!auth?.currentUser) throw new Error('not-authenticated');
+        return auth.currentUser;
       };
 
   const compressImage = (file) => {
@@ -64,24 +74,11 @@ export function createAppApi({ auth, db, storage, ensureAuth, withRetry }) {
       payload = await compressImage(file);
     }
     const safeName = `${Date.now()}_${file.name || 'arquivo'}`;
-    const path = `${pathPrefix}/${safeName}`;
-
-    const { data, error } = await supabase.storage
-      .from('files')
-      .upload(path, payload, {
-        cacheControl: '3600',
-        contentType: file.type || 'application/octet-stream',
-        upsert: false
-      });
-
-    if (error) throw error;
-
-    const { data: urlData } = supabase.storage
-      .from('files')
-      .getPublicUrl(path);
-
+    const storageRef = ref(storage, `${pathPrefix}/${safeName}`);
+    await uploadBytes(storageRef, payload);
+    const url = await getDownloadURL(storageRef);
     return {
-      url: urlData.publicUrl,
+      url,
       name: file.name || 'arquivo',
       type: file.type || 'application/octet-stream',
       size: file.size || 0
@@ -90,46 +87,49 @@ export function createAppApi({ auth, db, storage, ensureAuth, withRetry }) {
 
   const createAnnouncement = async ({ title, message, pinned, authorId }) => {
     await ensureSignedIn();
-    const { data, error } = await supabase
-      .from('announcements')
-      .insert({
-        title: sanitizeText(title, 200),
-        content: sanitizeText(message, 2000),
-        pinned: !!pinned,
-        created_by: authorId,
-        read_by: authorId ? [authorId] : []
-      });
-
-    if (error) throw error;
-    return data;
+    return addDoc(collection(db, 'announcements'), {
+      title: sanitizeText(title, 200),
+      message: sanitizeText(message, 2000),
+      pinned: !!pinned,
+      authorId,
+      created_at: serverTimestamp(),
+      read_by: authorId ? [authorId] : []
+    });
   };
 
   const deleteAnnouncement = async (id) => {
     await ensureSignedIn();
-    const { error } = await supabase
-      .from('announcements')
-      .delete()
-      .eq('id', id);
-
-    if (error) throw error;
+    return deleteDoc(doc(db, 'announcements', id));
   };
 
   const exportData = async () => {
     await ensureSignedIn();
+    const MAX_EXPORT_LIMIT = 5000;
+    const PAGE_SIZE = 500;
     const data = {};
 
-    for (const table of BACKUP_TABLES) {
-      const { data: rows, error } = await supabase
-        .from(table)
-        .select('*')
-        .limit(5000);
+    for (const col of BACKUP_COLLECTIONS) {
+      const allDocs = [];
+      let lastDoc = null;
+      let hasMore = true;
 
-      if (error) {
-        console.warn(`Erro ao exportar ${table}:`, error);
-        data[table] = [];
-      } else {
-        data[table] = rows || [];
+      while (hasMore && allDocs.length < MAX_EXPORT_LIMIT) {
+        const q = lastDoc
+          ? query(collection(db, col), startAfter(lastDoc), limit(PAGE_SIZE))
+          : query(collection(db, col), limit(PAGE_SIZE));
+
+        const snap = await withRetry(() => getDocs(q));
+
+        if (snap.empty) {
+          hasMore = false;
+        } else {
+          lastDoc = snap.docs[snap.docs.length - 1];
+          allDocs.push(...snap.docs.map((d) => ({ id: d.id, ...d.data() })));
+          hasMore = snap.docs.length === PAGE_SIZE;
+        }
       }
+
+      data[col] = allDocs;
     }
 
     return data;
@@ -137,19 +137,25 @@ export function createAppApi({ auth, db, storage, ensureAuth, withRetry }) {
 
   const importData = async (payload) => {
     await ensureSignedIn();
-
-    for (const table of BACKUP_TABLES) {
-      const rows = payload?.[table] || [];
-      if (rows.length === 0) continue;
-
-      const { error } = await supabase
-        .from(table)
-        .upsert(rows, { onConflict: 'id' });
-
-      if (error) {
-        console.error(`Erro ao importar ${table}:`, error);
-        throw error;
-      }
+    const entries = [];
+    BACKUP_COLLECTIONS.forEach((col) => {
+      const docs = payload?.[col] || [];
+      docs.forEach((item) => {
+        const { id, ...rest } = item;
+        entries.push({ col, id, data: rest });
+      });
+    });
+    const chunks = [];
+    for (let i = 0; i < entries.length; i += 450) {
+      chunks.push(entries.slice(i, i + 450));
+    }
+    for (const chunk of chunks) {
+      const batch = writeBatch(db);
+      chunk.forEach((e) => {
+        const refDoc = doc(db, e.col, e.id || doc(collection(db, e.col)).id);
+        batch.set(refDoc, e.data, { merge: true });
+      });
+      await batch.commit();
     }
   };
 

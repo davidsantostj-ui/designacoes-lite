@@ -1,5 +1,5 @@
-﻿import { useEffect } from 'react';
-import { supabase } from '../services/supabase';
+import { useEffect } from 'react';
+import { doc, serverTimestamp, updateDoc } from 'firebase/firestore';
 import { patchCollectionItem } from '../utils/dataStateUtils';
 
 export const useMonthlyCleanupEffect = ({
@@ -32,16 +32,16 @@ export const useMonthlyCleanupEffect = ({
       if (assignmentsDeleted === null || notificationsDeleted === null) return;
 
       try {
-        await supabase.from('users').update({
+        await updateDoc(doc(db, 'users', user.id), {
           lastCleanupMonth: monthKey,
-          lastCleanupAt: new Date().toISOString()
-        }).eq('id', user.id);
+          lastCleanupAt: serverTimestamp()
+        });
 
         setUser((prev) => (prev ? { ...prev, lastCleanupMonth: monthKey } : prev));
         setData((prev) => patchCollectionItem(prev, 'users', user.id, { lastCleanupMonth: monthKey }));
 
         const total = (assignmentsDeleted || 0) + (notificationsDeleted || 0);
-        if (total > 0) addToast(`Limpeza mensal concluida (${total}).`, 'success');
+        if (total > 0) addToast(`Limpeza mensal concluída (${total}).`, 'success');
       } catch (error) {
         addToast('Erro ao registrar limpeza mensal.', 'error');
       }

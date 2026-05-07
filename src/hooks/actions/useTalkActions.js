@@ -1,4 +1,4 @@
-﻿import { supabase } from '../../services/supabase';
+import { collection, doc, serverTimestamp, writeBatch } from 'firebase/firestore';
 import {
   filterCollection,
   mergeCollectionById,
@@ -62,12 +62,12 @@ export const useTalkActions = ({
     const songTheme = String(talkForm?.songTheme || '').trim();
 
     if (!date || !chairmanUserId || !speakerName || !talkTheme || !songNumber || !songTheme) {
-      addToast('Preencha os campos obrigatorios do discurso.', 'warn');
+      addToast('Preencha os campos obrigatórios do discurso.', 'warn');
       return false;
     }
 
     if ((data.talks || []).some((entry) => entry?.date === date)) {
-      addToast('Ja existe um discurso cadastrado nessa data.', 'warn');
+      addToast('Já existe um discurso cadastrado nessa data.', 'warn');
       return false;
     }
 
@@ -78,7 +78,7 @@ export const useTalkActions = ({
     }
 
     if (!canUserTakeAssignment(chairmanUser, TALK_CHAIR_ASSIGNMENT_TYPE)) {
-      addToast('Esse publicador nao esta habilitado para Presidente Fim de Semana.', 'warn');
+      addToast('Esse publicador não está habilitado para Presidente Fim de Semana.', 'warn');
       return false;
     }
 
@@ -90,18 +90,17 @@ export const useTalkActions = ({
     );
 
     try {
-      // Generate IDs
-      const talkId = `talk_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
-      const chairmanAssignmentId = conflictingChairAssignment 
-        ? conflictingChairAssignment.id
-        : `assignment_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
-      const notificationId = `notif_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
+      const talkRef = doc(collection(db, 'talks'));
+      const chairmanAssignmentRef = conflictingChairAssignment 
+        ? doc(db, 'assignments', conflictingChairAssignment.id)
+        : doc(collection(db, 'assignments'));
+      const notificationRef = doc(collection(db, 'notifications'));
+      const batch = writeBatch(db);
 
       const didReassignChairman = conflictingChairAssignment && conflictingChairAssignment.usuario_id !== chairmanUserId;
       const nextChairmanStatus = didReassignChairman ? 'pendente' : (conflictingChairAssignment?.status || 'pendente');
 
       const talkPayload = {
-        id: talkId,
         date,
         monthKey: getMonthKey(date),
         speakerName,
@@ -110,54 +109,48 @@ export const useTalkActions = ({
         talkTheme,
         songNumber,
         songTheme,
-        chairmanAssignmentId: chairmanAssignmentId,
-        notificationId: notificationId,
-        created_at: new Date().toISOString(),
+        chairmanAssignmentId: chairmanAssignmentRef.id,
+        notificationId: notificationRef.id,
+        created_at: serverTimestamp(),
         created_by: user?.id || ''
       };
       const assignmentPayload = {
-        id: chairmanAssignmentId,
         date,
         usuario_id: chairmanUserId,
         tipo_designacao: TALK_CHAIR_ASSIGNMENT_TYPE,
         status: nextChairmanStatus,
         source: 'talk_schedule',
-        talkScheduleId: talkId,
-        created_at: conflictingChairAssignment?.created_at || new Date().toISOString(),
-        updated_at: new Date().toISOString(),
+        talkScheduleId: talkRef.id,
+        ...(conflictingChairAssignment?.created_at ? {} : { created_at: serverTimestamp() }),
+        updated_at: serverTimestamp(),
         updated_by: user?.id || ''
       };
       
       const sendNotification = !conflictingChairAssignment || didReassignChairman;
-      const notificationPayload = sendNotification ? {
-        id: notificationId,
-        text: `Voce recebeu a designacao de Presidente Fim de Semana em ${formatDatePt(date)}.`,
+      const notificationPayload = {
+        text: `Você recebeu a designação de Presidente Fim de Semana em ${formatDatePt(date)}.`,
         authorId: user?.id || '',
         targetUserId: chairmanUserId,
-        created_at: new Date().toISOString(),
+        created_at: serverTimestamp(),
         type: 'talk_assignment',
-        talkScheduleId: talkId,
+        talkScheduleId: talkRef.id,
         targetView: 'ASSIGNMENTS_MONTH',
         read_by: []
-      } : null;
+      };
 
-      // Insert into Supabase
-      const inserts = [
-        supabase.from('talks').insert(talkPayload),
-        supabase.from('assignments').insert(assignmentPayload)
-      ];
-      if (sendNotification && notificationPayload) {
-        inserts.push(supabase.from('notifications').insert(notificationPayload));
+      batch.set(talkRef, talkPayload);
+      batch.set(chairmanAssignmentRef, assignmentPayload, { merge: true });
+      if (sendNotification) {
+        batch.set(notificationRef, notificationPayload);
       }
-      
-      await Promise.all(inserts);
+      await batch.commit();
 
       const localCreatedAt = new Date();
       setData((prev) => {
         let nextData = mergeCollectionById(
           prev,
           'talks',
-          [{ id: talkId, ...talkPayload, created_at: localCreatedAt }],
+          [{ id: talkRef.id, ...talkPayload, created_at: localCreatedAt }],
           { sortFn: compareTalksAsc }
         );
         
@@ -165,7 +158,7 @@ export const useTalkActions = ({
           nextData = patchCollectionItem(
             nextData,
             'assignments',
-            chairmanAssignmentId,
+            chairmanAssignmentRef.id,
             { ...assignmentPayload, updated_at: localCreatedAt },
             { sortFn: compareAssignmentsDesc }
           );
@@ -173,16 +166,16 @@ export const useTalkActions = ({
           nextData = mergeCollectionById(
             nextData,
             'assignments',
-            [{ id: chairmanAssignmentId, ...assignmentPayload, created_at: localCreatedAt }],
+            [{ id: chairmanAssignmentRef.id, ...assignmentPayload, created_at: localCreatedAt }],
             { sortFn: compareAssignmentsDesc }
           );
         }
         
-        if (sendNotification && notificationPayload) {
+        if (sendNotification) {
           nextData = prependCollectionItems(
             nextData,
             'notifications',
-            [{ id: notificationId, ...notificationPayload, created_at: localCreatedAt }],
+            [{ id: notificationRef.id, ...notificationPayload, created_at: localCreatedAt }],
             { limit: 80, sortFn: compareNotificationsDesc }
           );
         }
@@ -192,7 +185,7 @@ export const useTalkActions = ({
 
       addToast(
         conflictingChairAssignment 
-          ? 'Discurso vinculado a designacao existente.' 
+          ? 'Discurso vinculado à designação existente.' 
           : 'Discurso cadastrado e presidente notificado.', 
         'success'
       );
@@ -259,13 +252,16 @@ export const useTalkActions = ({
     }
 
     try {
-      const chairmanAssignmentId = currentTalk.chairmanAssignmentId
-        ? currentTalk.chairmanAssignmentId
-        : `assignment_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
+      const batch = writeBatch(db);
+      const talkRef = doc(db, 'talks', talkId);
+      const chairmanAssignmentRef = currentTalk.chairmanAssignmentId
+        ? doc(db, 'assignments', currentTalk.chairmanAssignmentId)
+        : doc(collection(db, 'assignments'));
       const notificationId =
         currentTalk.notificationId ||
         (data.notifications || []).find((entry) => entry?.talkScheduleId === talkId)?.id ||
-        `notif_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
+        doc(collection(db, 'notifications')).id;
+      const notificationRef = doc(db, 'notifications', notificationId);
 
       const didReschedule = currentTalk.date !== date;
       const didReassignChairman = existingChairmanAssignment?.usuario_id !== chairmanUserId;
@@ -283,9 +279,9 @@ export const useTalkActions = ({
         talkTheme,
         songNumber,
         songTheme,
-        chairmanAssignmentId: chairmanAssignmentId,
+        chairmanAssignmentId: chairmanAssignmentRef.id,
         notificationId,
-        updated_at: new Date().toISOString(),
+        updated_at: serverTimestamp(),
         updated_by: user?.id || ''
       };
       const assignmentPayload = {
@@ -295,8 +291,8 @@ export const useTalkActions = ({
         status: nextChairmanStatus,
         source: 'talk_schedule',
         talkScheduleId: talkId,
-        ...(existingChairmanAssignment?.created_at ? {} : { created_at: new Date().toISOString() }),
-        updated_at: new Date().toISOString(),
+        ...(existingChairmanAssignment?.created_at ? {} : { created_at: serverTimestamp() }),
+        updated_at: serverTimestamp(),
         updated_by: user?.id || ''
       };
       const notificationPayload = {
@@ -308,28 +304,19 @@ export const useTalkActions = ({
         targetView: 'ASSIGNMENTS_MONTH',
         ...(notificationId && (data.notifications || []).some((entry) => entry.id === notificationId)
           ? {}
-          : { created_at: new Date().toISOString() }),
-        updated_at: new Date().toISOString(),
+          : { created_at: serverTimestamp() }),
+        updated_at: serverTimestamp(),
         ...(didReschedule || didReassignChairman ? { read_by: [] } : {})
       };
 
-      // Update in Supabase
-      const updates = [
-        supabase.from('talks').update(talkPayload).eq('id', talkId),
-        supabase.from('assignments').upsert({ id: chairmanAssignmentId, ...assignmentPayload })
-      ];
-      
-      const existingNotification =
-        (data.notifications || []).find((entry) => entry.id === notificationId) || null;
-      if (existingNotification) {
-        updates.push(supabase.from('notifications').update(notificationPayload).eq('id', notificationId));
-      } else if (notificationPayload.created_at) {
-        updates.push(supabase.from('notifications').insert({ id: notificationId, ...notificationPayload }));
-      }
-      
-      await Promise.all(updates);
+      batch.set(talkRef, talkPayload, { merge: true });
+      batch.set(chairmanAssignmentRef, assignmentPayload, { merge: true });
+      batch.set(notificationRef, notificationPayload, { merge: true });
+      await batch.commit();
 
       const localUpdatedAt = new Date();
+      const existingNotification =
+        (data.notifications || []).find((entry) => entry.id === notificationId) || null;
 
       setData((prev) =>
         mergeCollectionById(
@@ -347,7 +334,7 @@ export const useTalkActions = ({
             'assignments',
             [
               {
-                id: chairmanAssignmentId,
+                id: chairmanAssignmentRef.id,
                 ...(existingChairmanAssignment || {}),
                 ...assignmentPayload,
                 updated_at: localUpdatedAt
@@ -384,29 +371,25 @@ export const useTalkActions = ({
 
     const approved = await confirm({
       title: 'Excluir discurso',
-      message: 'Deseja excluir esse discurso e a designacao vinculada do presidente?',
+      message: 'Deseja excluir esse discurso e a designação vinculada do presidente?',
       confirmText: 'Excluir'
     });
     if (!approved) return false;
 
     try {
+      const batch = writeBatch(db);
       const relatedNotificationId =
         talk.notificationId ||
         (data.notifications || []).find((entry) => entry?.talkScheduleId === talk.id)?.id ||
         '';
-      
-      // Delete from Supabase
-      const deletions = [
-        supabase.from('talks').delete().eq('id', talk.id)
-      ];
+      batch.delete(doc(db, 'talks', talk.id));
       if (talk.chairmanAssignmentId) {
-        deletions.push(supabase.from('assignments').delete().eq('id', talk.chairmanAssignmentId));
+        batch.delete(doc(db, 'assignments', talk.chairmanAssignmentId));
       }
       if (relatedNotificationId) {
-        deletions.push(supabase.from('notifications').delete().eq('id', relatedNotificationId));
+        batch.delete(doc(db, 'notifications', relatedNotificationId));
       }
-      
-      await Promise.all(deletions);
+      await batch.commit();
 
       setData((prev) =>
         filterCollection(
@@ -420,7 +403,7 @@ export const useTalkActions = ({
         )
       );
 
-      addToast('Discurso excluido.', 'success');
+      addToast('Discurso excluído.', 'success');
       return true;
     } catch (error) {
       console.error('handleDeleteTalk failed', error);
