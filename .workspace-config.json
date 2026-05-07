@@ -1,0 +1,25 @@
+{
+  "projectName": "App Designações Lite",
+  "description": "Aplicação de gerenciamento de designações",
+  "backend": "supabase",
+  "database": "supabase",
+  "authentication": "supabase",
+  "deployment": {
+    "provider": "supabase",
+    "environment": "production"
+  },
+  "environment": {
+    "VITE_SUPABASE_URL": "https://ymjthrmykjimhwpojgxw.supabase.co",
+    "VITE_SUPABASE_ANON_KEY": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InltanRocm15a2ppbWh3cG9qZ3h3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzgxNjQyOTcsImV4cCI6MjA5Mzc0MDI5N30.Yl78kkD40bu8QG4j-PGjpXLjJy3wKv7j-wdPY1b-yRg"
+  },
+  "warnings": {
+    "firebaseConfig": "⚠️ Este projeto NÃO usa Firebase! Remova `.firebaserc` e `firebase.json` se não for mais necessário.",
+    "deployment": "⚠️ Deploy DEVE ser feito no Supabase, não no Firebase!",
+    "noDeploy": "⚠️ Use 'npm run build' para preparar arquivos. Deploy é feito via provedor configurado (ex: Vercel, Netlify)."
+  },
+  "supportedCommands": {
+    "dev": "npm run dev - Inicia servidor de desenvolvimento",
+    "build": "npm run build - Compila para produção",
+    "preview": "npm run preview - Visualiza build de produção localmente"
+  }
+}

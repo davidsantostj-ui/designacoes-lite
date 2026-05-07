@@ -13,19 +13,15 @@
     "test:e2e": "node scripts/e2e-smoke.js",
     "test:prelaunch": "node scripts/prelaunch-check.js",
     "test:unit": "mocha --timeout 10000 \"scripts/tests/unit/**/*.test.js\"",
-    "firebase:login": "npx firebase-tools login",
-    "firebase:use": "npx firebase-tools use --add",
-    "deploy": "npm run build && npx firebase-tools deploy --only hosting,firestore",
     "test:rules": "node scripts/run-rules-tests.js"
   },
   "dependencies": {
-    "firebase": "^9.22.0",
+    "@supabase/supabase-js": "^2.105.3",
     "lucide-react": "^0.263.1",
     "react": "^18.2.0",
     "react-dom": "^18.2.0"
   },
   "devDependencies": {
-    "@firebase/rules-unit-testing": "^2.0.7",
     "@vitejs/plugin-react": "^4.3.0",
     "autoprefixer": "^10.4.18",
     "eslint": "^8.57.0",

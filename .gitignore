@@ -4,3 +4,9 @@ firebase-debug.log
 firestore-debug.log
 *.tmp.png
 .firebase
+.firebaserc
+firebase.json
+.vercel
+.env.local
+.env.*.local
+*.log
