@@ -1,4 +1,4 @@
-import { collection, getDocs, limit, orderBy, query, where } from 'firebase/firestore';
+import { supabase } from './supabase';
 
 export function buildDataLoader({
   db,
@@ -36,14 +36,13 @@ export function buildDataLoader({
 
     if (wanted.has('users')) {
       await loadSectionSafely('users', async () => {
-        const snap = await runOnce('users', () =>
+        const { data } = await runOnce('users', () =>
           isRealAdminUser
-            ? withRetry(() => getDocs(collection(db, 'users')))
+            ? withRetry(() => supabase.from('profiles').select('*'))
             : withRetry(() =>
-                getDocs(query(collection(db, 'users'), where('approved', '==', true), limit(200)))
-              )
+                supabase.from('profiles').select('*').eq('approved', true).limit(200))
         );
-        updates.users = snap.docs.map((d) => ({ id: d.id, ...d.data() }));
+        updates.users = (data || []).map(d => ({ id: d.id, ...d }));
         ready.users = true;
       });
     }
@@ -52,37 +51,31 @@ export function buildDataLoader({
       await loadSectionSafely('assignments', async () => {
         const cutoff = getMonthStartIso(new Date());
         const upcomingCutoff = getDateDaysAgo(0);
-        const [monthSnap, upcomingSnap] = await Promise.all([
+        const [monthData, upcomingData] = await Promise.all([
           runOnce(`assignments:month:${cutoff}`, () =>
             withRetry(() =>
-              getDocs(
-                query(
-                  collection(db, 'assignments'),
-                  where('date', '>=', cutoff),
-                  orderBy('date', 'desc'),
-                  limit(INITIAL_ASSIGNMENTS_LIMIT)
-                )
-              )
+              supabase
+                .from('assignments')
+                .select('*')
+                .gte('date', cutoff)
+                .order('date', { ascending: false })
+                .limit(INITIAL_ASSIGNMENTS_LIMIT)
             )
           ),
           runOnce(`assignments:upcoming:${upcomingCutoff}`, () =>
             withRetry(() =>
-              getDocs(
-                query(
-                  collection(db, 'assignments'),
-                  where('date', '>=', upcomingCutoff),
-                  orderBy('date', 'asc'),
-                  limit(UPCOMING_ASSIGNMENTS_LIMIT)
-                )
-              )
+              supabase
+                .from('assignments')
+                .select('*')
+                .gte('date', upcomingCutoff)
+                .order('date', { ascending: true })
+                .limit(UPCOMING_ASSIGNMENTS_LIMIT)
             )
           )
         ]);
         const merged = new Map();
-        [monthSnap, upcomingSnap].forEach((snap) => {
-          snap.docs.forEach((entry) => {
-            merged.set(entry.id, { id: entry.id, ...entry.data() });
-          });
+        [...(monthData?.data || []), ...(upcomingData?.data || [])].forEach((entry) => {
+          merged.set(entry.id, { id: entry.id, ...entry });
         });
         updates.assignments = [...merged.values()].sort((a, b) => {
           if (a.date === b.date) {
@@ -97,19 +90,17 @@ export function buildDataLoader({
     if (wanted.has('meetings')) {
       await loadSectionSafely('meetings', async () => {
         const cutoff = getCurrentWeekCutoff();
-        const snap = await runOnce('meetings', () =>
+        const { data } = await runOnce('meetings', () =>
           withRetry(() =>
-            getDocs(
-              query(
-                collection(db, 'meetings'),
-                where('date', '>=', cutoff),
-                orderBy('date', 'asc'),
-                limit(MEETINGS_LIMIT)
-              )
-            )
+            supabase
+              .from('meetings')
+              .select('*')
+              .gte('date', cutoff)
+              .order('date', { ascending: true })
+              .limit(MEETINGS_LIMIT)
           )
         );
-        updates.meetings = snap.docs.map((d) => ({ id: d.id, ...d.data() }));
+        updates.meetings = (data || []).map(d => ({ id: d.id, ...d }));
         ready.meetings = true;
       });
     }
@@ -120,48 +111,50 @@ export function buildDataLoader({
         const futureLimitDate = new Date(`${cutoff}T12:00:00`);
         futureLimitDate.setMonth(futureLimitDate.getMonth() + 7);
         const futureLimit = `${futureLimitDate.getFullYear()}-${String(futureLimitDate.getMonth() + 1).padStart(2, '0')}-01`;
-        const snap = await runOnce(`talks:${cutoff}:${futureLimit}`, () =>
+        const { data } = await runOnce(`talks:${cutoff}:${futureLimit}`, () =>
           withRetry(() =>
-            getDocs(
-              query(
-                collection(db, 'talks'),
-                where('date', '>=', cutoff),
-                where('date', '<', futureLimit),
-                orderBy('date', 'asc'),
-                limit(80)
-              )
-            )
+            supabase
+              .from('talks')
+              .select('*')
+              .gte('date', cutoff)
+              .lt('date', futureLimit)
+              .order('date', { ascending: true })
+              .limit(80)
           )
         );
-        updates.talks = snap.docs.map((d) => ({ id: d.id, ...d.data() }));
+        updates.talks = (data || []).map(d => ({ id: d.id, ...d }));
         ready.talks = true;
       });
     }
 
     if (wanted.has('notifications')) {
       await loadSectionSafely('notifications', async () => {
-        const snap = await runOnce('notifications', () =>
+        const { data } = await runOnce('notifications', () =>
           withRetry(() =>
-            getDocs(
-              query(collection(db, 'notifications'), orderBy('created_at', 'desc'), limit(15))
-            )
+            supabase
+              .from('notifications')
+              .select('*')
+              .order('created_at', { ascending: false })
+              .limit(15)
           )
         );
-        updates.notifications = snap.docs.map((d) => ({ id: d.id, ...d.data() }));
+        updates.notifications = (data || []).map(d => ({ id: d.id, ...d }));
         ready.notifications = true;
       });
     }
 
     if (wanted.has('announcements')) {
       await loadSectionSafely('announcements', async () => {
-        const snap = await runOnce('announcements', () =>
+        const { data } = await runOnce('announcements', () =>
           withRetry(() =>
-            getDocs(
-              query(collection(db, 'announcements'), orderBy('created_at', 'desc'), limit(50))
-            )
+            supabase
+              .from('announcements')
+              .select('*')
+              .order('created_at', { ascending: false })
+              .limit(50)
           )
         );
-        const items = snap.docs.map((d) => ({ id: d.id, ...d.data() }));
+        const items = (data || []).map(d => ({ id: d.id, ...d }));
         items.sort((a, b) => (b.pinned === true) - (a.pinned === true));
         updates.announcements = items;
         ready.announcements = true;
@@ -170,32 +163,34 @@ export function buildDataLoader({
 
     if (wanted.has('swapLogs')) {
       await loadSectionSafely('swapLogs', async () => {
-        const snap = await runOnce('swapLogs', () =>
+        const { data } = await runOnce('swapLogs', () =>
           withRetry(() =>
-            getDocs(query(collection(db, 'swap_logs'), orderBy('createdAt', 'desc'), limit(200)))
+            supabase
+              .from('swap_logs')
+              .select('*')
+              .order('createdAt', { ascending: false })
+              .limit(200)
           )
         );
-        updates.swapLogs = snap.docs.map((d) => ({ id: d.id, ...d.data() }));
+        updates.swapLogs = (data || []).map(d => ({ id: d.id, ...d }));
         ready.swapLogs = true;
       });
     }
 
     if (wanted.has('specialEvents')) {
       await loadSectionSafely('specialEvents', async () => {
-        const cutoff = getDateDaysAgo(30); // Carrega eventos desde 30 dias atrás para o histórico próximo
-        const snap = await runOnce('specialEvents', () =>
+        const cutoff = getDateDaysAgo(30);
+        const { data } = await runOnce('specialEvents', () =>
           withRetry(() =>
-            getDocs(
-              query(
-                collection(db, 'specialEvents'),
-                where('date', '>=', cutoff),
-                orderBy('date', 'asc'),
-                limit(50)
-              )
-            )
+            supabase
+              .from('specialEvents')
+              .select('*')
+              .gte('date', cutoff)
+              .order('date', { ascending: true })
+              .limit(50)
           )
         );
-        updates.specialEvents = snap.docs.map((d) => ({ id: d.id, ...d.data() }));
+        updates.specialEvents = (data || []).map(d => ({ id: d.id, ...d }));
         ready.specialEvents = true;
       });
     }

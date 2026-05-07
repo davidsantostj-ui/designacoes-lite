@@ -4,8 +4,10 @@
  */
 
 import { useCallback } from 'react';
+import { supabase } from '../services/supabase';
 import { ADMIN_UIDS } from '../constants/appConstants';
-import { auth } from '../services/firebase';
+
+const auth = null;
 
 /**
  * Hook para verificar autenticação e permissões administrativas

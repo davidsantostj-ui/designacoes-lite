@@ -1,20 +1,35 @@
-﻿import { initializeApp } from 'firebase/app';
-import { getAuth } from 'firebase/auth';
-import { getFirestore } from 'firebase/firestore';
-import { getStorage } from 'firebase/storage';
+﻿/**
+ * @module services/firebase
+ * @description Adapter quewraps Supabase para manter compatibilidade com API do Firebase
+ */
 
-const firebaseConfig = {
-  apiKey: 'AIzaSyDovn542L52BUsDKu_F8eYEs4lq5oUOOE4',
-  authDomain: 'minhas-designacoes-app.firebaseapp.com',
-  projectId: 'minhas-designacoes-app',
-  storageBucket: 'minhas-designacoes-app.firebasestorage.app',
-  messagingSenderId: '33324490818',
-  appId: '1:33324490818:web:1c7a75a909cc065a198ddb'
+import { supabase } from './supabase';
+
+export const auth = {
+  currentUser: null,
+  onAuthStateChanged: (callback) => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+      const user = session?.user ? {
+        uid: session.user.id,
+        email: session.user.email,
+        emailVerified: session.user.email_confirmed_at,
+        displayName: session.user.user_metadata?.display_name,
+        photoURL: session.user.user_metadata?.avatar_url
+      } : null;
+      callback(user);
+    });
+    return () => subscription.unsubscribe();
+  }
 };
 
-const app = initializeApp(firebaseConfig);
-const auth = getAuth(app);
-const db = getFirestore(app);
-const storage = getStorage(app);
+export const db = {
+  _service: null,
+  collection: (name) => ({
+    name,
+    _service: null
+  })
+};
 
-export { app, auth, db, storage };
+export const storage = {};
+
+export const app = {};

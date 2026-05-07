@@ -24,7 +24,6 @@ import AdminMessagesTab from '../../features/admin/AdminMessagesTab';
 import AdminReportsTab from '../../features/admin/AdminReportsTab';
 import AdminBackupTab from '../../features/admin/AdminBackupTab';
 import AdminMeetingsTab from '../../features/admin/AdminMeetingsTab';
-import { getWeekStartIso } from '../../utils/meetingViewUtils.cjs';
 import AdminSpecialEventsTab from '../../features/admin/AdminSpecialEventsTab';
 import AdminGuestTab from '../../features/admin/AdminGuestTab';
 
@@ -166,6 +165,15 @@ const AdminView = ({
 }) => {
   const currentGroup = getAdminGroupByTab(adminTab);
   const pendingApprovals = (data?.users || []).filter((entry) => !entry.approved).length;
+
+  // Calcula a segunda-feira da semana de uma data ISO (mesmo comportamento de meetingViewUtils)
+  const getWeekStartIso = (isoDate) => {
+    const [y, m, d] = isoDate.split('-').map(Number);
+    const date = new Date(y, m - 1, d);
+    const weekday = (date.getDay() + 6) % 7;
+    date.setDate(date.getDate() - weekday);
+    return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
+  };
 
   const handleEditImportedWeek = React.useCallback((meetings) => {
     if (!meetings || meetings.length === 0) return;

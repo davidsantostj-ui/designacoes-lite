@@ -1,12 +1,11 @@
-import React, { useMemo, useState } from 'react';
-import { addDoc, collection, deleteDoc, doc } from 'firebase/firestore';
+﻿import React, { useMemo, useState } from 'react';
+import { supabase } from '../../services/supabase';
 import { CalendarDays, Plus, Trash2 } from 'lucide-react';
-import { db } from '../../services/firebase';
 import { EVENT_TYPES, MEETING_CANCELLATION_RULES } from '../../utils/specialEventsUtils';
 
-// Fix #2: substituídos alert() e window.confirm() por addToast e confirm do sistema
-// Fix #10: .sort() movido para useMemo (não muta array original, não roda todo re-render)
-// Fix #17: loadSections após save/delete para atualizar lista em tempo real
+// Fix #2: substituidos alert() e window.confirm() por addToast e confirm do sistema
+// Fix #10: .sort() movido para useMemo (nao muta array original, nao roda todo re-render)
+// Fix #17: loadSections apos save/delete para atualizar lista em tempo real
 const AdminSpecialEventsTab = ({ data, formatDatePt, addToast, confirm, loadSections }) => {
   const [loading, setLoading] = useState(false);
   const events = data.specialEvents || [];
@@ -18,7 +17,7 @@ const AdminSpecialEventsTab = ({ data, formatDatePt, addToast, confirm, loadSect
     labelOverrides: ''
   });
 
-  // Fix #10: sort em useMemo — não muta o array original e só recalcula quando events muda
+  // Fix #10: sort em useMemo — nao muta o array original e so recalcula quando events muda
   const sortedEvents = useMemo(
     () => [...events].sort((a, b) => new Date(a.date) - new Date(b.date)),
     [events]
@@ -38,15 +37,19 @@ const AdminSpecialEventsTab = ({ data, formatDatePt, addToast, confirm, loadSect
 
     setLoading(true);
     try {
-      await addDoc(collection(db, 'specialEvents'), {
+      const eventId = `spevent_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
+      
+      await supabase.from('special_events').insert({
+        id: eventId,
         date: form.date,
         typeId: form.typeId,
         cancellationRule: form.cancellationRule,
         labelOverrides: form.labelOverrides.trim(),
         createdAt: new Date().toISOString()
       });
+      
       resetForm();
-      // Fix #17: atualizar lista em tempo real sem precisar recarregar a página
+      // Fix #17: atualizar lista em tempo real sem precisar recarregar a pagina
       if (loadSections) await loadSections(['specialEvents'], { silent: true });
       // Fix #2: toast em vez de alert() nativo
       if (addToast) addToast('Evento especial adicionado!', 'success');
@@ -63,7 +66,7 @@ const AdminSpecialEventsTab = ({ data, formatDatePt, addToast, confirm, loadSect
       ? await new Promise((resolve) => {
           confirm({
             title: 'Apagar evento especial',
-            message: 'Tem certeza que quer apagar essa data? Esta ação não pode ser desfeita.',
+            message: 'Tem certeza que quer apagar essa data? Esta acao nao pode ser desfeita.',
             confirmText: 'Apagar',
             onConfirm: () => resolve(true),
             onCancel: () => resolve(false)
@@ -75,7 +78,7 @@ const AdminSpecialEventsTab = ({ data, formatDatePt, addToast, confirm, loadSect
 
     setLoading(true);
     try {
-      await deleteDoc(doc(db, 'specialEvents', id));
+      await supabase.from('special_events').delete().eq('id', id);
       // Fix #17: atualizar lista em tempo real
       if (loadSections) await loadSections(['specialEvents'], { silent: true });
       if (addToast) addToast('Evento especial removido.', 'success');
@@ -125,7 +128,7 @@ const AdminSpecialEventsTab = ({ data, formatDatePt, addToast, confirm, loadSect
         </div>
 
         <label className="block">
-          <span className="mb-1 block text-xs font-bold text-slate-500">Ação para as Reuniões</span>
+          <span className="mb-1 block text-xs font-bold text-slate-500">Acao para as Reunioes</span>
           <select
             value={form.cancellationRule}
             onChange={(e) => setForm({ ...form, cancellationRule: e.target.value })}
@@ -138,12 +141,12 @@ const AdminSpecialEventsTab = ({ data, formatDatePt, addToast, confirm, loadSect
             ))}
           </select>
           <p className="mt-1 text-[10px] text-slate-400">
-            Define automaticamente se as reuniões dessa semana aparecerão na agenda do app.
+            Define automaticamente se as reunioes dessa semana aparecerao na agenda do app.
           </p>
         </label>
 
         <label className="block">
-          <span className="mb-1 block text-xs font-bold text-slate-500">Informação (Opcional)</span>
+          <span className="mb-1 block text-xs font-bold text-slate-500">Informacao (Opcional)</span>
           <input
             type="text"
             placeholder="Ex: Assembleia c/ Superintendente de Circuito no Local X"

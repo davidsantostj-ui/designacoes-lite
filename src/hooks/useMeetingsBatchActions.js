@@ -1,5 +1,5 @@
 import { useCallback, useMemo, useState } from 'react';
-import { collection, doc, getDocs, query, where, writeBatch } from 'firebase/firestore';
+import { supabase } from '../services/supabase';
 import { filterCollection, patchCollectionItems, replaceCollection } from '../utils/dataStateUtils';
 import {
   buildMeetingBatchLabel,

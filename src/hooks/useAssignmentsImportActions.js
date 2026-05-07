@@ -1,5 +1,5 @@
-import { useCallback, useState } from 'react';
-import { collection, getDocs, orderBy, query, where } from 'firebase/firestore';
+﻿import { useCallback, useState } from 'react';
+import { supabase } from '../services/supabase';
 import { isMechanicalAssignment, normalizeAssignmentType } from '../utils/assignmentUtils';
 import { normalizeCsvDate, parseCsv } from '../utils/csvUtils';
 import {
@@ -81,15 +81,13 @@ export const useAssignmentsImportActions = ({
       if (!minDate || !maxDate) return [];
 
       try {
-        const snap = await getDocs(
-          query(
-            collection(db, 'assignments'),
-            where('date', '>=', minDate),
-            where('date', '<=', maxDate),
-            orderBy('date')
-          )
-        );
-        return snap.docs.map((docSnap) => ({ id: docSnap.id, ...docSnap.data() }));
+        const { data } = await supabase
+          .from('assignments')
+          .select('*')
+          .gte('date', minDate)
+          .lte('date', maxDate)
+          .order('date');
+        return data || [];
       } catch (error) {
         console.error(error);
         addToast(warningMessage, 'warn');
@@ -104,7 +102,7 @@ export const useAssignmentsImportActions = ({
   const openAssignmentsPreview = useCallback(
     ({ fileName, rows, ignoredRows = [], skippedExisting = 0, skippedCsv = 0 }) => {
       if (!rows.length && !ignoredRows.length) {
-        addToast('Nenhuma nova designação para importar.', 'info');
+        addToast('Nenhuma nova designacao para importar.', 'info');
         return false;
       }
 
@@ -119,7 +117,7 @@ export const useAssignmentsImportActions = ({
       });
       if (ignoredRows.length > 0) {
         addToast(
-          `${ignoredRows.length} nome(s) foram ignorados porque ainda não estão no app.`,
+          `${ignoredRows.length} nome(s) foram ignorados porque ainda nao estao no app.`,
           'warn'
         );
       }
@@ -133,7 +131,7 @@ export const useAssignmentsImportActions = ({
     async (file) => {
       if (!file || isImportingAssignments) return;
       if (
-        !(await guardAdminAction('Apenas administradores podem importar novas designações.'))
+        !(await guardAdminAction('Apenas administradores podem importar novas designacoes.'))
       ) {
         return;
       }
@@ -188,14 +186,14 @@ export const useAssignmentsImportActions = ({
         });
 
         if (!preparedRows.length) {
-          addToast('Nenhuma linha válida no CSV.', 'warn');
+          addToast('Nenhuma linha valida no CSV.', 'warn');
           return;
         }
 
         const existingAssignments = await loadAssignmentsInRange(
           minDate,
           maxDate,
-          'Não foi possível validar duplicatas no banco. Vou comparar com os dados carregados.'
+          'Nao foi possivel validar duplicatas no banco. Vou comparar com os dados carregados.'
         );
 
         const existingKeys = new Set();
@@ -283,7 +281,7 @@ export const useAssignmentsImportActions = ({
               line,
               name: name || uid || '',
               userId: EXTERNAL_SELECTION,
-              userLabel: 'Não cadastrado (apenas na reunião)',
+              userLabel: 'Nao cadastrado (apenas na reuniao)',
               date,
               status,
               type,
@@ -313,13 +311,13 @@ export const useAssignmentsImportActions = ({
         }
         if (skippedMechanicalExisting) {
           addToast(
-            `Tarefas mecânicas ignoradas por conflito no mesmo dia: ${skippedMechanicalExisting}.`,
+            `Tarefas mecanicas ignoradas por conflito no mesmo dia: ${skippedMechanicalExisting}.`,
             'info'
           );
         }
         if (skippedMechanicalCsv) {
           addToast(
-            `Tarefas mecânicas duplicadas no CSV ignoradas: ${skippedMechanicalCsv}.`,
+            `Tarefas mecanicas duplicadas no CSV ignoradas: ${skippedMechanicalCsv}.`,
             'info'
           );
         }
@@ -391,7 +389,7 @@ export const useAssignmentsImportActions = ({
 
     const pendingRow = rows.find((row) => !row.selectedId);
     if (pendingRow) {
-      addToast('Selecione usuários para todas as linhas.', 'warn');
+      addToast('Selecione usuarios para todas as linhas.', 'warn');
       return;
     }
 
@@ -468,7 +466,7 @@ export const useAssignmentsImportActions = ({
     }
 
     if (
-      !(await guardAdminAction('Apenas administradores podem confirmar a importação de designações.'))
+      !(await guardAdminAction('Apenas administradores podem confirmar a importacao de designacoes.'))
     ) {
       return;
     }
@@ -486,7 +484,7 @@ export const useAssignmentsImportActions = ({
       const freshAssignments = await loadAssignmentsInRange(
         minDate,
         maxDate,
-        'Não foi possível validar o período inteiro no banco. Vou comparar com os dados carregados.'
+        'Nao foi possivel validar o periodo inteiro no banco. Vou comparar com os dados carregados.'
       );
 
       const usedExactKeys = new Set(
@@ -539,13 +537,13 @@ export const useAssignmentsImportActions = ({
       });
 
       if (!safeRows.length) {
-        addToast('A prévia ficou desatualizada. Revise o lote e tente novamente.', 'warn');
+        addToast('A previa ficou desatualizada. Revise o lote e tente novamente.', 'warn');
         closeAssignmentsImportPreview();
         return;
       }
 
       if (skipped > 0) {
-        addToast(`Itens ignorados por conflito recente: ${skipped}.`, 'info');
+        addToast(`Itens ignorados por conflicto recente: ${skipped}.`, 'info');
       }
 
       const nextAssignments = safeRows.map((row) => {
@@ -574,12 +572,12 @@ export const useAssignmentsImportActions = ({
 
       await commitAssignmentsImport(nextAssignments, perUserCounts);
       closeAssignmentsImportPreview();
-      addToast('Importação concluída.', 'success');
+      addToast('Importacao concluida.', 'success');
 
       if (preview.showInMeetings) {
         const meetingsCount = safeRows.filter((row) => row.meetingEligible).length;
         if (meetingsCount > 0) {
-          addToast(`${meetingsCount} designação(ões) também aparecerão em Reuniões.`, 'info');
+          addToast(`${meetingsCount} designacao(oes) tambem aparecerao em Reuniões.`, 'info');
         }
       }
     } catch (error) {

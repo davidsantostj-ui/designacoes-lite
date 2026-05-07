@@ -1,19 +1,19 @@
 /**
- * @module services/firebaseService
- * @description Adapter para Supabase - mantido para compatibilidade
+ * @module services/supabaseService
+ * @description Service centralizado para operações Supabase (PostgREST) - Migração de Firestore
  */
 
 import { supabase } from './supabase';
 import { withRetry } from '../utils/asyncUtils';
 
-class FirestoreService {
+class SupabaseService {
   constructor(tableName) {
     this.tableName = tableName;
   }
 
   async query(options = {}) {
     return withRetry(async () => {
-      let query = supabase.from(this.tableName).select('*');
+      let query = supabase.from(this.tableName).select('*', { count: options.count ? 'exact' : null });
 
       if (options.whereClauses) {
         options.whereClauses.forEach(([field, op, value]) => {
@@ -33,24 +33,30 @@ class FirestoreService {
             case '<=':
               query = query.lte(field, value);
               break;
+            case 'array-contains':
+              query = query.contains(field, [value]);
+              break;
           }
         });
       }
 
       if (options.orderByField) {
-        query = query.order(options.orderByField, { 
-          ascending: options.orderDirection !== 'desc' 
-        });
+        query = query.order(options.orderByField, { ascending: options.orderDirection !== 'desc' });
       }
 
       if (options.limitCount) {
         query = query.limit(options.limitCount);
       }
 
+      if (options.offset) {
+        query = query.range(options.offset, options.offset + (options.limitCount || 10) - 1);
+      }
+
       const { data, error } = await query;
+
       if (error) throw error;
 
-      const docs = (data || []).map(doc => ({
+      const docs = data.map(doc => ({
         id: doc.id,
         ...doc,
         _timestamp: doc.created_at || doc.updated_at
@@ -86,6 +92,14 @@ class FirestoreService {
       if (options.useServerTimestamp) {
         docData.created_at = new Date().toISOString();
         docData.updated_at = new Date().toISOString();
+      }
+
+      if (!docData.id) {
+        const { data: idData, error: idError } = await supabase
+          .rpc('gen_random_uuid');
+        if (!idError && idData) {
+          docData.id = idData;
+        }
       }
 
       const { data: result, error } = await supabase
@@ -141,8 +155,7 @@ class FirestoreService {
   async batch(operations) {
     return withRetry(async () => {
       for (const op of operations) {
-        const { type, id, data } = op;
-        const tableName = op.collection || this.tableName;
+        const { type, data } = op;
         const opData = { ...data };
 
         if (type === 'create' || type === 'update') {
@@ -154,13 +167,13 @@ class FirestoreService {
 
         switch (type) {
           case 'create':
-            await supabase.from(tableName).insert(opData);
+            await supabase.from(op.collection || this.tableName).insert(opData);
             break;
           case 'update':
-            await supabase.from(tableName).update(opData).eq('id', id);
+            await supabase.from(op.collection || this.tableName).update(opData).eq('id', op.id);
             break;
           case 'delete':
-            await supabase.from(tableName).delete().eq('id', id);
+            await supabase.from(op.collection || this.tableName).delete().eq('id', op.id);
             break;
         }
       }
@@ -176,17 +189,17 @@ class FirestoreService {
     if (error) throw error;
 
     if (excludeId) {
-      return (data || []).some(doc => doc.id !== excludeId);
+      return data.some(doc => doc.id !== excludeId);
     }
 
-    return (data || []).length > 0;
+    return data.length > 0;
   }
 }
 
-export const assignmentsService = new FirestoreService('assignments');
-export const usersService = new FirestoreService('profiles');
-export const meetingsService = new FirestoreService('meetings');
-export const notificationsService = new FirestoreService('notifications');
-export const rolesService = new FirestoreService('profiles');
+export const assignmentsService = new SupabaseService('assignments');
+export const usersService = new SupabaseService('users');
+export const meetingsService = new SupabaseService('meetings');
+export const notificationsService = new SupabaseService('notifications');
+export const rolesService = new SupabaseService('roles');
 
-export default FirestoreService;
+export default SupabaseService;

@@ -1,22 +1,20 @@
-import { useCallback } from 'react';
-import { collection, getDocs, query, where, orderBy, limit } from 'firebase/firestore';
-import { db } from '../services/firebase';
+﻿import { useCallback } from 'react';
+import { supabase } from '../services/supabase';
 
 export const useMonthlyAssignments = () => {
   const fetchMonthlyAssignments = useCallback(async (start, end) => {
     try {
-      const snap = await getDocs(
-        query(
-          collection(db, 'assignments'),
-          where('date', '>=', start),
-          where('date', '<=', end),
-          orderBy('date', 'asc'),
-          limit(500)
-        )
-      );
-      return snap.docs.map((entry) => ({ id: entry.id, ...entry.data() }));
+      const { data } = await supabase
+        .from('assignments')
+        .select('*')
+        .gte('date', start)
+        .lte('date', end)
+        .order('date', { ascending: true })
+        .limit(500);
+      
+      return data || [];
     } catch (err) {
-      console.error('Erro ao buscar designações do mês:', err);
+      console.error('Erro ao buscar designacoes do mes:', err);
       throw err; // Re-throw para que o chamador possa lidar
     }
   }, []);

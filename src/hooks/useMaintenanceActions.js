@@ -1,14 +1,5 @@
-import { useCallback, useMemo, useState } from 'react';
-import {
-  Timestamp,
-  collection,
-  getDocs,
-  limit,
-  orderBy,
-  query,
-  where,
-  writeBatch
-} from 'firebase/firestore';
+﻿import { useCallback, useMemo, useState } from 'react';
+import { supabase } from '../services/supabase';
 import { filterCollection, replaceCollection } from '../utils/dataStateUtils';
 
 const toMillis = (value) => {
@@ -50,8 +41,8 @@ export const useMaintenanceActions = ({
 
       if (!skipConfirm) {
         const confirmed = await confirm({
-          title: 'Limpar designações antigas',
-          message: `Isso apagará do banco todas as designações anteriores a ${label}. Essa ação é definitiva.`,
+          title: 'Limpar designacoes antigas',
+          message: `Isso apagara do banco todas as designacoes anteriores a ${label}. Essa acao eh definitiva.`,
           confirmText: 'Apagar'
         });
         if (!confirmed) return null;
@@ -65,20 +56,16 @@ export const useMaintenanceActions = ({
         try {
           let totalDeleted = 0;
           for (;;) {
-            const snap = await getDocs(
-              query(
-                collection(db, 'assignments'),
-                where('date', '<', cutoffIso),
-                orderBy('date', 'asc'),
-                limit(450)
-              )
-            );
-            if (snap.empty) break;
-            const batch = writeBatch(db);
-            snap.docs.forEach((docSnap) => batch.delete(docSnap.ref));
-            await batch.commit();
-            totalDeleted += snap.size;
-            if (snap.size < 450) break;
+            const { data, error } = await supabase
+              .from('assignments')
+              .delete()
+              .lt('date', cutoffIso)
+              .select('id');
+            
+            if (error || !data || data.length === 0) break;
+            
+            totalDeleted += data.length;
+            if (data.length < 450) break;
           }
 
           setData((prev) =>
@@ -87,11 +74,11 @@ export const useMaintenanceActions = ({
           result = totalDeleted;
 
           if (!silent) {
-            if (totalDeleted > 0) addToast(`Designações antigas removidas (${totalDeleted}).`, 'success');
-            else addToast('Nenhuma designação antiga encontrada.', 'info');
+            if (totalDeleted > 0) addToast(`Designacoes antigas removidas (${totalDeleted}).`, 'success');
+            else addToast('Nenhuma designacao antiga encontrada.', 'info');
           }
         } catch (error) {
-          if (!silent) addToast('Erro ao limpar designações antigas.', 'error');
+          if (!silent) addToast('Erro ao limpar designacoes antigas.', 'error');
         } finally {
           setIsCleaningAssignments(false);
         }
@@ -115,8 +102,8 @@ export const useMaintenanceActions = ({
 
       if (!skipConfirm) {
         const confirmed = await confirm({
-          title: 'Limpar notificações antigas',
-          message: `Isso apagará do banco todas as notificações anteriores a ${label}. Essa ação é definitiva.`,
+          title: 'Limpar notificacoes antigas',
+          message: `Isso apagara do banco todas as notificacoes anteriores a ${label}. Essa acao eh definitiva.`,
           confirmText: 'Apagar'
         });
         if (!confirmed) return null;
@@ -129,26 +116,21 @@ export const useMaintenanceActions = ({
         setIsCleaningNotifications(true);
         try {
           let totalDeleted = 0;
-          const cutoffTs = Timestamp.fromDate(cutoffDate);
+          const cutoffMs = cutoffDate.getTime();
 
           for (;;) {
-            const snap = await getDocs(
-              query(
-                collection(db, 'notifications'),
-                where('created_at', '<', cutoffTs),
-                orderBy('created_at', 'asc'),
-                limit(450)
-              )
-            );
-            if (snap.empty) break;
-            const batch = writeBatch(db);
-            snap.docs.forEach((docSnap) => batch.delete(docSnap.ref));
-            await batch.commit();
-            totalDeleted += snap.size;
-            if (snap.size < 450) break;
+            const { data, error } = await supabase
+              .from('notifications')
+              .delete()
+              .lt('created_at', cutoffDate.toISOString())
+              .select('id');
+            
+            if (error || !data || data.length === 0) break;
+            
+            totalDeleted += data.length;
+            if (data.length < 450) break;
           }
 
-          const cutoffMs = cutoffDate.getTime();
           setData((prev) =>
             filterCollection(prev, 'notifications', (entry) => {
               const createdAt = toMillis(entry.created_at);
@@ -158,11 +140,11 @@ export const useMaintenanceActions = ({
           result = totalDeleted;
 
           if (!silent) {
-            if (totalDeleted > 0) addToast(`Notificações antigas removidas (${totalDeleted}).`, 'success');
-            else addToast('Nenhuma notificação antiga encontrada.', 'info');
+            if (totalDeleted > 0) addToast(`Notificacoes antigas removidas (${totalDeleted}).`, 'success');
+            else addToast('Nenhuma notificacao antiga encontrada.', 'info');
           }
         } catch (error) {
-          if (!silent) addToast('Erro ao limpar notificações antigas.', 'error');
+          if (!silent) addToast('Erro ao limpar notificacoes antigas.', 'error');
         } finally {
           setIsCleaningNotifications(false);
         }
@@ -190,9 +172,9 @@ export const useMaintenanceActions = ({
     }
 
     const confirmed = await confirm({
-      title: 'Apagar todas as designações',
+      title: 'Apagar todas as designacoes',
       message:
-        'Isso removerá todas as designações do banco (pendentes, confirmadas e trocas). Essa ação é definitiva.',
+        'Isso removera todas as designacoes do banco (pendentes, confirmadas e trocas). Essa acao eh definitiva.',
       confirmText: 'Apagar tudo'
     });
     if (!confirmed) return;
@@ -203,23 +185,27 @@ export const useMaintenanceActions = ({
       try {
         let totalDeleted = 0;
         for (;;) {
-          const snap = await getDocs(
-            query(collection(db, 'assignments'), orderBy('date', 'asc'), limit(450))
-          );
-          if (snap.empty) break;
-          const batch = writeBatch(db);
-          snap.docs.forEach((docSnap) => batch.delete(docSnap.ref));
-          await batch.commit();
-          totalDeleted += snap.size;
-          if (snap.size < 450) break;
+          const { data, error } = await supabase
+            .from('assignments')
+            .select('id')
+            .order('date', { ascending: true })
+            .limit(450);
+          
+          if (error || !data || data.length === 0) break;
+          
+          const ids = data.map(d => d.id);
+          await supabase.from('assignments').delete().in('id', ids);
+          
+          totalDeleted += data.length;
+          if (data.length < 450) break;
         }
 
         setData((prev) => replaceCollection(prev, 'assignments', []));
 
-        if (totalDeleted > 0) addToast(`Todas as designações removidas (${totalDeleted}).`, 'success');
-        else addToast('Nenhuma designação encontrada.', 'info');
+        if (totalDeleted > 0) addToast(`Todas as designacoes removidas (${totalDeleted}).`, 'success');
+        else addToast('Nenhuma designacao encontrada.', 'info');
       } catch (error) {
-        addToast('Erro ao apagar designações.', 'error');
+        addToast('Erro ao apagar designacoes.', 'error');
       } finally {
         setIsWipingAssignments(false);
       }
