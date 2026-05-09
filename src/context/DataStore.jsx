@@ -35,13 +35,23 @@ export const DataProvider = ({ children }) => {
       // Auto-Seed: Se o banco estiver vazio, cria os usuários iniciais
       if (!uErr && (!usersData || usersData.length === 0)) {
         await supabase.from('users').insert([
-          { name: 'João Silva (Admin)', email: 'admin@teste.com', role: 'admin', pin: '1234' },
+          { name: 'David Santos', email: 'david@admin.com', role: 'admin', pin: '1804' },
           { name: 'Maria Santos', email: 'maria@teste.com', role: 'user', pin: '1234' },
           { name: 'Pedro Alves', email: 'pedro@teste.com', role: 'user', pin: '1234' },
           { name: 'Ana Costa', email: 'ana@teste.com', role: 'user', pin: '1234' }
         ]);
         const res = await supabase.from('users').select('*');
         usersData = res.data;
+      } else if (!uErr && usersData) {
+        // Fallback: Garantir que o David Santos exista
+        const hasDavid = usersData.find(u => u.name === 'David Santos');
+        if (!hasDavid) {
+          await supabase.from('users').insert([
+            { name: 'David Santos', email: 'david@admin.com', role: 'admin', pin: '1804' }
+          ]);
+          const res = await supabase.from('users').select('*');
+          usersData = res.data;
+        }
       }
       setUsers(usersData || []);
 
@@ -136,6 +146,10 @@ export const DataProvider = ({ children }) => {
     const { error } = await supabase.from('users').delete().eq('id', id);
     if (!error) setUsers(prev => prev.filter(u => u.id !== id));
   };
+  const updateUserRole = async (id, newRole) => {
+    const { error } = await supabase.from('users').update({ role: newRole }).eq('id', id);
+    if (!error) setUsers(prev => prev.map(u => u.id === id ? { ...u, role: newRole } : u));
+  };
 
   // ===== CRUD NOTICES =====
   const createNotice = async (data) => {
@@ -188,7 +202,7 @@ export const DataProvider = ({ children }) => {
   const value = {
     users, assignments, meetings, notices, tips, fieldService, quickLinks, currentUser, isDarkMode, loading,
     createAssignment, updateAssignmentStatus, deleteAssignment, reassignTask,
-    createUser, deleteUser,
+    createUser, deleteUser, updateUserRole,
     createNotice, deleteNotice,
     createTip, deleteTip, toggleTipActive,
     createFieldService, deleteFieldService,

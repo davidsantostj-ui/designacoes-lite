@@ -1,15 +1,15 @@
 import React, { useState } from 'react';
 import { useData } from '../context/DataStore';
-import { ShieldAlert, UserPlus, CalendarPlus, FileSpreadsheet, AlertTriangle, Users, MessageSquare, CheckCircle2, Trash2, LayoutDashboard, BookOpen, MapPin, Link as LinkIcon, Plus, Eye, EyeOff, ChevronRight, ArrowLeft } from 'lucide-react';
+import { ShieldAlert, ShieldCheck, Shield, UserPlus, CalendarPlus, FileSpreadsheet, AlertTriangle, Users, MessageSquare, CheckCircle2, Trash2, LayoutDashboard, BookOpen, MapPin, Link as LinkIcon, Plus, Eye, EyeOff, ChevronRight, ArrowLeft } from 'lucide-react';
 
 export default function Admin() {
   // O estado inicial agora é o MENU de opções do Admin
   const [activeTab, setActiveTab] = useState('MENU');
   
   const { 
-    assignments, users, notices, tips, fieldService, quickLinks,
+    assignments, users, notices, tips, fieldService, quickLinks, currentUser,
     createAssignment, reassignTask, deleteAssignment, 
-    createUser, deleteUser, 
+    createUser, deleteUser, updateUserRole,
     createNotice, deleteNotice,
     createTip, deleteTip, toggleTipActive,
     createFieldService, deleteFieldService,
@@ -276,15 +276,45 @@ export default function Admin() {
 
             {users.map(u => (
               <div key={u.id} className="flex items-center justify-between p-4 rounded-[20px] bg-white/60 dark:bg-slate-900/60 backdrop-blur-md border border-slate-200 dark:border-slate-800 shadow-sm">
-                <div>
-                  <p className="text-sm font-black text-slate-800 dark:text-slate-100">{u.name}</p>
-                  <p className="text-[10px] uppercase font-bold text-slate-400 mt-0.5">{u.role} • PIN: {u.pin || '****'}</p>
+                <div className="flex items-center gap-3">
+                  <div className={`p-2 rounded-xl ${u.role === 'admin' ? 'bg-amber-100 dark:bg-amber-500/20' : 'bg-slate-100 dark:bg-slate-800'}`}>
+                    {u.role === 'admin'
+                      ? <ShieldCheck size={18} className="text-amber-500" />
+                      : <Shield size={18} className="text-slate-400" />
+                    }
+                  </div>
+                  <div>
+                    <p className="text-sm font-black text-slate-800 dark:text-slate-100">{u.name}</p>
+                    <p className="text-[10px] uppercase font-bold text-slate-400 mt-0.5">
+                      {u.role === 'admin' ? '👑 Administrador' : 'Publicador'} • PIN: {u.pin || '****'}
+                    </p>
+                  </div>
                 </div>
-                {u.id !== 'u1' && (
+                <div className="flex items-center gap-2">
+                  {/* Só mostra o botão de promoção se o usuário logado é admin e o card não é o próprio usuário */}
+                  {currentUser?.role === 'admin' && u.id !== currentUser?.id && (
+                    <button
+                      onClick={() => {
+                        const newRole = u.role === 'admin' ? 'user' : 'admin';
+                        const acao = newRole === 'admin' ? 'promover a Administrador' : 'rebaixar a Publicador';
+                        if (window.confirm(`Deseja ${acao} "${u.name}"?`)) {
+                          updateUserRole(u.id, newRole);
+                        }
+                      }}
+                      title={u.role === 'admin' ? 'Remover acesso Admin' : 'Promover a Admin'}
+                      className={`p-2 rounded-xl transition-all active:scale-90 ${
+                        u.role === 'admin'
+                          ? 'bg-amber-100 text-amber-600 hover:bg-amber-200 dark:bg-amber-500/20 dark:text-amber-400 dark:hover:bg-amber-500/30'
+                          : 'bg-slate-100 text-slate-400 hover:bg-emerald-100 hover:text-emerald-600 dark:bg-slate-800 dark:hover:bg-emerald-500/20 dark:hover:text-emerald-400'
+                      }`}
+                    >
+                      <ShieldCheck size={18} />
+                    </button>
+                  )}
                   <button onClick={() => deleteUser(u.id)} className="text-red-500 p-2 hover:bg-red-50 dark:hover:bg-red-500/10 rounded-xl transition-colors">
                     <Trash2 size={18} />
                   </button>
-                )}
+                </div>
               </div>
             ))}
           </div>
