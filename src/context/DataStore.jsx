@@ -108,11 +108,66 @@ export const DataProvider = ({ children }) => {
     fetchAllData();
   }, []);
 
+  // ===== FEAT #7: SUPABASE REALTIME =====
+  // Atualizações propagadas em tempo real para todos os dispositivos conectados
+  useEffect(() => {
+    // Canal: assignments
+    const assignChannel = supabase
+      .channel('realtime-assignments')
+      .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'assignments' },
+        (payload) => setAssignments(prev => [...prev, payload.new])
+      )
+      .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'assignments' },
+        (payload) => setAssignments(prev => prev.map(a => a.id === payload.new.id ? payload.new : a))
+      )
+      .on('postgres_changes', { event: 'DELETE', schema: 'public', table: 'assignments' },
+        (payload) => setAssignments(prev => prev.filter(a => a.id !== payload.old.id))
+      )
+      .subscribe();
+
+    // Canal: users (para promoção a admin refletir sem reload)
+    const usersChannel = supabase
+      .channel('realtime-users')
+      .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'users' },
+        (payload) => setUsers(prev => [...prev, payload.new])
+      )
+      .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'users' },
+        (payload) => {
+          setUsers(prev => prev.map(u => u.id === payload.new.id ? payload.new : u));
+          // Atualiza o currentUser se for o mesmo
+          setCurrentUser(prev => prev?.id === payload.new.id ? payload.new : prev);
+        }
+      )
+      .on('postgres_changes', { event: 'DELETE', schema: 'public', table: 'users' },
+        (payload) => setUsers(prev => prev.filter(u => u.id !== payload.old.id))
+      )
+      .subscribe();
+
+    // Canal: notices
+    const noticesChannel = supabase
+      .channel('realtime-notices')
+      .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'notices' },
+        (payload) => setNotices(prev => [payload.new, ...prev])
+      )
+      .on('postgres_changes', { event: 'DELETE', schema: 'public', table: 'notices' },
+        (payload) => setNotices(prev => prev.filter(n => n.id !== payload.old.id))
+      )
+      .subscribe();
+
+    // Cleanup: unsubscribe ao desmontar
+    return () => {
+      supabase.removeChannel(assignChannel);
+      supabase.removeChannel(usersChannel);
+      supabase.removeChannel(noticesChannel);
+    };
+  }, []);
+
   useEffect(() => {
     localStorage.setItem('v2_theme', isDarkMode ? 'dark' : 'light');
     if (isDarkMode) document.documentElement.classList.add('dark');
     else document.documentElement.classList.remove('dark');
   }, [isDarkMode]);
+
 
   const login = (userId) => {
     const user = users.find(u => u.id === userId);

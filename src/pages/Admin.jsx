@@ -1,6 +1,18 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useData } from '../context/DataStore';
-import { ShieldAlert, ShieldCheck, Shield, UserPlus, CalendarPlus, FileSpreadsheet, AlertTriangle, Users, MessageSquare, CheckCircle2, Trash2, LayoutDashboard, BookOpen, MapPin, Link as LinkIcon, Plus, Eye, EyeOff, ChevronRight, ArrowLeft } from 'lucide-react';
+import { ShieldAlert, ShieldCheck, Shield, UserPlus, CalendarPlus, FileSpreadsheet, AlertTriangle, Users, MessageSquare, CheckCircle2, Trash2, LayoutDashboard, BookOpen, MapPin, Link as LinkIcon, Plus, Eye, EyeOff, ChevronRight, ArrowLeft, X } from 'lucide-react';
+
+// Toast interno — sem usar alert()
+function AdminToast({ msg, type, onClose }) {
+  useEffect(() => { const t = setTimeout(onClose, 3000); return () => clearTimeout(t); }, [onClose]);
+  const colors = { success: 'bg-emerald-500', error: 'bg-red-500', info: 'bg-blue-500', warning: 'bg-amber-500' };
+  return (
+    <div className={`fixed top-4 left-1/2 -translate-x-1/2 z-[9999] flex items-center gap-2 px-5 py-3 rounded-2xl text-white text-sm font-bold shadow-2xl animate-slide-up ${colors[type] || colors.info}`}>
+      <span>{msg}</span>
+      <button onClick={onClose} className="ml-1 opacity-70 hover:opacity-100"><X size={14}/></button>
+    </div>
+  );
+}
 
 export default function Admin() {
   // O estado inicial agora é o MENU de opções do Admin
@@ -17,17 +29,27 @@ export default function Admin() {
   } = useData();
 
   const [showNewUserForm, setShowNewUserForm] = useState(false);
+  const [toast, setToast] = useState(null);
+  const [reassignModal, setReassignModal] = useState(null); // { assignId }
+  const [reassignUserId, setReassignUserId] = useState('');
+
+  const showToast = (msg, type = 'success') => setToast({ msg, type });
 
   const rejectedAssignments = assignments.filter(a => a.status === 'rejected');
 
   const handleReassign = (assignId) => {
-    const newUserId = prompt("Digite o ID do novo usuário (ex: u1, u2, u3, u4):");
-    if (newUserId && users.find(u => u.id === newUserId)) {
-      reassignTask(assignId, newUserId);
-      alert("Designação reatribuída com sucesso!");
+    setReassignUserId('');
+    setReassignModal({ assignId });
+  };
+
+  const confirmReassign = () => {
+    if (reassignUserId && users.find(u => u.id === reassignUserId)) {
+      reassignTask(reassignModal.assignId, reassignUserId);
+      showToast('Designação reatribuída com sucesso!');
     } else {
-      alert("Ação cancelada ou usuário não encontrado.");
+      showToast('Selecione um usuário válido.', 'error');
     }
+    setReassignModal(null);
   };
 
   const handleNewAssignment = (e) => {
@@ -38,7 +60,7 @@ export default function Admin() {
       type: data.get('type'),
       date: data.get('date'),
     });
-    alert("Designação criada com sucesso!");
+    showToast('Designação criada com sucesso!');
     e.target.reset();
   };
 
@@ -69,11 +91,11 @@ export default function Admin() {
     const data = new FormData(e.target);
     createUser({
       name: data.get('name'),
-      email: data.get('email') || `user_${Date.now()}@app.com`, // Email fake caso não preencha
+      email: data.get('email') || `user_${Date.now()}@app.com`,
       role: data.get('role'),
       pin: data.get('pin')
     });
-    alert("Usuário cadastrado com sucesso!");
+    showToast('Usuário cadastrado com sucesso!');
     e.target.reset();
     setShowNewUserForm(false);
   };
@@ -100,40 +122,43 @@ export default function Admin() {
   // Renderiza o menu principal em formato de grid de cards
   if (activeTab === 'MENU') {
     return (
-      <div className="space-y-6 pb-20 animate-fade-in">
-        <section>
-          <h2 className="text-3xl font-black tracking-tight text-slate-900 dark:text-white">Administração</h2>
-          <p className="text-slate-500 dark:text-slate-400 text-sm mt-1 font-medium">Selecione uma área para gerenciar.</p>
-        </section>
+      <>
+        <div className="space-y-6 pb-20 animate-fade-in">
+          <section>
+            <h2 className="text-3xl font-black tracking-tight text-slate-900 dark:text-white">Administração</h2>
+            <p className="text-slate-500 dark:text-slate-400 text-sm mt-1 font-medium">Selecione uma área para gerenciar.</p>
+          </section>
 
-        <div className="grid grid-cols-1 gap-3">
-          {menuItems.map(item => (
-            <button
-              key={item.id}
-              onClick={() => setActiveTab(item.id)}
-              className="flex items-center justify-between p-4 rounded-[24px] bg-white dark:bg-slate-900/60 border border-slate-200 dark:border-slate-800 shadow-sm hover:shadow-md hover:scale-[1.02] active:scale-95 transition-all text-left"
-            >
-              <div className="flex items-center gap-4">
-                <div className={`p-3 rounded-2xl ${item.bg} ${item.color}`}>
-                  <item.icon size={24} />
+          <div className="grid grid-cols-1 gap-3">
+            {menuItems.map(item => (
+              <button
+                key={item.id}
+                onClick={() => setActiveTab(item.id)}
+                className="flex items-center justify-between p-4 rounded-[24px] bg-white dark:bg-slate-900/60 border border-slate-200 dark:border-slate-800 shadow-sm hover:shadow-md hover:scale-[1.02] active:scale-95 transition-all text-left"
+              >
+                <div className="flex items-center gap-4">
+                  <div className={`p-3 rounded-2xl ${item.bg} ${item.color}`}>
+                    <item.icon size={24} />
+                  </div>
+                  <div>
+                    <h3 className="text-base font-black text-slate-800 dark:text-slate-100">{item.label}</h3>
+                    <p className="text-xs font-medium text-slate-500 dark:text-slate-400 mt-0.5">{item.desc}</p>
+                  </div>
                 </div>
-                <div>
-                  <h3 className="text-base font-black text-slate-800 dark:text-slate-100">{item.label}</h3>
-                  <p className="text-xs font-medium text-slate-500 dark:text-slate-400 mt-0.5">{item.desc}</p>
+                <div className="flex items-center gap-3">
+                  {item.count > 0 && (
+                    <span className="bg-red-500 text-white text-[11px] px-2 py-0.5 rounded-full font-bold shadow-sm">
+                      {item.count}
+                    </span>
+                  )}
+                  <ChevronRight size={20} className="text-slate-400" />
                 </div>
-              </div>
-              <div className="flex items-center gap-3">
-                {item.count > 0 && (
-                  <span className="bg-red-500 text-white text-[11px] px-2 py-0.5 rounded-full font-bold shadow-sm">
-                    {item.count}
-                  </span>
-                )}
-                <ChevronRight size={20} className="text-slate-400" />
-              </div>
-            </button>
-          ))}
+              </button>
+            ))}
+          </div>
         </div>
-      </div>
+        {toast && <AdminToast msg={toast.msg} type={toast.type} onClose={() => setToast(null)} />}
+      </>
     );
   }
 
@@ -178,7 +203,8 @@ export default function Admin() {
                   <div className="flex items-start justify-between pl-3">
                     <div>
                       <span className="text-[10px] font-black uppercase tracking-widest text-rose-700 dark:text-rose-300 bg-rose-200 dark:bg-rose-900/50 px-3 py-1.5 rounded-lg">
-                        {new Date(assign.date).toLocaleDateString('pt-BR')}
+                        {/* BUG #2 FIX */}
+                        {assign.date.split('-').reverse().join('/')}
                       </span>
                       <h4 className="text-xl font-black text-slate-900 dark:text-white mt-3">{assign.type}</h4>
                       <p className="text-sm text-slate-700 dark:text-slate-300 mt-1 font-medium bg-white/50 dark:bg-slate-900/50 py-1 px-3 rounded-lg inline-block border border-rose-100 dark:border-rose-900/30">
@@ -296,9 +322,10 @@ export default function Admin() {
                     <button
                       onClick={() => {
                         const newRole = u.role === 'admin' ? 'user' : 'admin';
-                        const acao = newRole === 'admin' ? 'promover a Administrador' : 'rebaixar a Publicador';
-                        if (window.confirm(`Deseja ${acao} "${u.name}"?`)) {
+                        const msg = newRole === 'admin' ? `Promover "${u.name}" a Administrador?` : `Rebaixar "${u.name}" a Publicador?`;
+                        if (window.confirm(msg)) {
                           updateUserRole(u.id, newRole);
+                          showToast(newRole === 'admin' ? `${u.name} agora é Admin 👑` : `${u.name} agora é Publicador`, 'info');
                         }
                       }}
                       title={u.role === 'admin' ? 'Remover acesso Admin' : 'Promover a Admin'}
@@ -328,7 +355,7 @@ export default function Admin() {
               <form onSubmit={(e) => {
                 e.preventDefault();
                 createNotice({ title: e.target.title.value, content: e.target.content.value });
-                alert("Aviso publicado!");
+                showToast('Aviso publicado!');
                 e.target.reset();
               }} className="space-y-4">
                 <input name="title" type="text" placeholder="Título do aviso" required className="soft-input" />
@@ -500,5 +527,30 @@ export default function Admin() {
 
       </div>
     </div>
-  );
+
+    {/* Toast — substitui alert() */}
+    {toast && <AdminToast msg={toast.msg} type={toast.type} onClose={() => setToast(null)} />}
+
+    {/* Modal de Reatribuição — substitui prompt() */}
+    {reassignModal && (
+      <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-[9998] flex items-end justify-center p-4">
+        <div className="w-full max-w-sm bg-white dark:bg-slate-900 rounded-[28px] p-6 shadow-2xl animate-slide-up">
+          <h3 className="text-base font-black text-slate-800 dark:text-slate-100 mb-1">Reatribuir Designação</h3>
+          <p className="text-xs text-slate-500 font-medium mb-4">Selecione o novo responsável:</p>
+          <select
+            value={reassignUserId}
+            onChange={e => setReassignUserId(e.target.value)}
+            className="soft-select w-full mb-4"
+          >
+            <option value="">Selecione um usuário...</option>
+            {users.map(u => <option key={u.id} value={u.id}>{u.name}</option>)}
+          </select>
+          <div className="flex gap-3">
+            <button onClick={() => setReassignModal(null)} className="flex-1 py-3 rounded-xl border border-slate-200 dark:border-slate-700 text-sm font-black text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors">Cancelar</button>
+            <button onClick={confirmReassign} className="flex-1 py-3 rounded-xl bg-rose-600 text-white text-sm font-black hover:bg-rose-700 transition-colors shadow-md shadow-rose-500/30">Confirmar</button>
+          </div>
+        </div>
+      </div>
+    )}
+  </>;
 }

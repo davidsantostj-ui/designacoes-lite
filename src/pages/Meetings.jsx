@@ -1,10 +1,16 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { useData } from '../context/DataStore';
 import { ChevronDown, ChevronUp, Calendar as CalendarIcon, Users } from 'lucide-react';
 
 export default function Meetings() {
-  const { meetings, assignments, users } = useData();
+  const { meetings, assignments, users, currentUser } = useData();
   const [expandedId, setExpandedId] = useState(null);
+
+  // PERF #2: useMemo evita .sort() a cada render
+  const sortedMeetings = useMemo(() =>
+    [...meetings].sort((a, b) => a.date.localeCompare(b.date)),
+    [meetings]
+  );
 
   // Filtrar designações do dia (apenas não rejeitadas)
   const getAssignmentsForDate = (date) => {
@@ -22,7 +28,7 @@ export default function Meetings() {
       </section>
 
       <div className="space-y-3 animate-slide-up" style={{ animationDelay: '50ms' }}>
-        {meetings.sort((a,b) => new Date(a.date) - new Date(b.date)).map(meeting => {
+        {sortedMeetings.map(meeting => {
           const isExpanded = expandedId === meeting.id;
           const meetingAssignments = getAssignmentsForDate(meeting.date);
 
@@ -37,8 +43,9 @@ export default function Meetings() {
                     <span className={`text-[9px] uppercase tracking-[0.2em] font-black px-2 py-1 rounded-lg ${meeting.type === 'Fim de Semana' ? 'bg-amber-100 text-amber-700 dark:bg-amber-500/10 dark:text-amber-400' : 'bg-indigo-100 text-indigo-700 dark:bg-indigo-500/10 dark:text-indigo-400'}`}>
                       {meeting.type}
                     </span>
+                    {/* BUG #2 FIX: split('-').reverse().join('/') evita offset UTC do new Date() */}
                     <span className="text-xs font-bold text-slate-500 flex items-center gap-1 bg-slate-100 dark:bg-slate-800 px-2 py-0.5 rounded-md">
-                      <CalendarIcon size={12} /> {new Date(meeting.date).toLocaleDateString('pt-BR')}
+                      <CalendarIcon size={12} /> {meeting.date.split('-').reverse().join('/')}
                     </span>
                   </div>
                   <h3 className="text-base font-black text-slate-800 dark:text-slate-100">{meeting.title}</h3>
@@ -59,6 +66,7 @@ export default function Meetings() {
                   ) : (
                     <div className="space-y-2">
                       {meetingAssignments.map(assign => {
+                        // BUG #1 FIX: currentUser agora existe — isMine funciona corretamente
                         const isMine = currentUser?.id && assign.user_id === currentUser.id;
                         return (
                           <div key={assign.id} className={`flex items-center justify-between p-3 rounded-[16px] border shadow-sm transition-all ${isMine ? 'bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-900/20 dark:to-indigo-900/20 border-blue-200 dark:border-blue-500/30 ring-1 ring-blue-500/20' : 'bg-white dark:bg-slate-800 border-slate-200/50 dark:border-slate-700/50'}`}>

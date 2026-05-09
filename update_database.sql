@@ -53,3 +53,12 @@ $$;
 -- PASSO 4: Verificar se o usuário foi criado corretamente
 -- ================================================================
 SELECT id, name, email, role, pin FROM public.users;
+
+-- ================================================================
+-- PASSO 5 (OBRIGATÓRIO para Realtime funcionar):
+-- Ativar a publicação de mudanças em tempo real nas tabelas
+-- ================================================================
+ALTER PUBLICATION supabase_realtime ADD TABLE public.assignments;
+ALTER PUBLICATION supabase_realtime ADD TABLE public.users;
+ALTER PUBLICATION supabase_realtime ADD TABLE public.notices;
+

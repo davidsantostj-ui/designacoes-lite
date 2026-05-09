@@ -12,7 +12,7 @@ export default function FieldService() {
       {/* Header específico da página com Botão Voltar */}
       <div className="flex items-center gap-3 mb-6">
         <button 
-          onClick={() => navigate(-1)}
+          onClick={() => window.history.length > 1 ? navigate(-1) : navigate('/')}
           className="w-10 h-10 rounded-full bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 flex items-center justify-center hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors shadow-sm"
         >
           <ArrowLeft size={20} className="text-slate-600 dark:text-slate-300" />
