@@ -527,6 +527,7 @@ export default function Admin() {
         )}
 
       </div>
+    </div>
 
     {/* Toast — substitui alert() */}
     {toast && <AdminToast msg={toast.msg} type={toast.type} onClose={() => setToast(null)} />}
