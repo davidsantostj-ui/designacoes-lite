@@ -1,5 +1,0 @@
-{
-  "project": "seu-projeto-supabase",
-  "provider": "supabase",
-  "environment": "production"
-}

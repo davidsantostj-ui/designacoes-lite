@@ -1,23 +1,18 @@
 import { useCallback } from 'react';
-import { collection, getDocs, query, where, orderBy, limit } from 'firebase/firestore';
-import { db } from '../services/firebase';
+import { createDataProvider } from '../services/dataProvider';
+
+const provider = createDataProvider();
 
 export const useMonthlyAssignments = () => {
   const fetchMonthlyAssignments = useCallback(async (start, end) => {
     try {
-      const snap = await getDocs(
-        query(
-          collection(db, 'assignments'),
-          where('date', '>=', start),
-          where('date', '<=', end),
-          orderBy('date', 'asc'),
-          limit(500)
-        )
-      );
-      return snap.docs.map((entry) => ({ id: entry.id, ...entry.data() }));
+      const all = await provider.getAssignments();
+      return all
+        .filter((a) => a.date >= start && a.date <= end)
+        .sort((a, b) => a.date.localeCompare(b.date));
     } catch (err) {
       console.error('Erro ao buscar designações do mês:', err);
-      throw err; // Re-throw para que o chamador possa lidar
+      throw err;
     }
   }, []);
 

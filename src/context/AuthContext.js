@@ -4,7 +4,7 @@
  */
 
 import React, { createContext, useEffect, useState, useCallback } from 'react';
-import { auth, db } from '../services/firebase';
+import { auth, db } from '../services/apiProvider';
 import { addToast } from '../hooks/useToasts'; // placeholder, adjust import as needed
 
 /** @typedef {import('firebase/auth').User} AuthUser */

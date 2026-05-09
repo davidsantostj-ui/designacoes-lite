@@ -5,7 +5,9 @@
 
 import { useCallback } from 'react';
 import { ADMIN_UIDS } from '../constants/appConstants';
-import { auth } from '../services/firebase';
+import { apiProvider } from '../services/apiProvider';
+
+const auth = apiProvider.auth;
 
 /**
  * Hook para verificar autenticação e permissões administrativas

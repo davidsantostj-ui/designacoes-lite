@@ -17,9 +17,10 @@
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.105.3",
-    "lucide-react": "^0.263.1",
+    "lucide-react": "^0.400.0",
     "react": "^18.2.0",
-    "react-dom": "^18.2.0"
+    "react-dom": "^18.2.0",
+    "react-router-dom": "^7.15.0"
   },
   "devDependencies": {
     "@vitejs/plugin-react": "^4.3.0",

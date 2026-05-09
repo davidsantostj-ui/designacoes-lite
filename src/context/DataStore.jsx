@@ -1,0 +1,194 @@
+import React, { createContext, useContext, useState, useEffect } from 'react';
+import { supabase } from '../lib/supabase';
+
+const DataContext = createContext(null);
+
+// Reuniões permanecem locais por enquanto, pois não têm tela de Admin para geri-las
+const initialMeetings = [
+  { id: 'm1', date: '2026-05-10', type: 'Fim de Semana', title: 'Reunião Pública e Estudo de A Sentinela' },
+  { id: 'm2', date: '2026-05-12', type: 'Meio de Semana', title: 'Nossa Vida e Ministério Cristão' },
+  { id: 'm3', date: '2026-05-17', type: 'Fim de Semana', title: 'Reunião Pública e Estudo de A Sentinela' },
+  { id: 'm4', date: '2026-05-19', type: 'Meio de Semana', title: 'Nossa Vida e Ministério Cristão' }
+];
+
+export const DataProvider = ({ children }) => {
+  const [users, setUsers] = useState([]);
+  const [assignments, setAssignments] = useState([]);
+  const [meetings] = useState(initialMeetings);
+  const [notices, setNotices] = useState([]);
+  const [tips, setTips] = useState([]);
+  const [fieldService, setFieldService] = useState([]);
+  const [quickLinks, setQuickLinks] = useState([]);
+  
+  const [isDarkMode, setIsDarkMode] = useState(() => localStorage.getItem('v2_theme') === 'dark');
+  const [loading, setLoading] = useState(true);
+
+  // Busca todos os dados do Supabase ao iniciar
+  useEffect(() => {
+    async function fetchAllData() {
+      setLoading(true);
+
+      // 1. Fetch Users
+      let { data: usersData, error: uErr } = await supabase.from('users').select('*');
+      
+      // Auto-Seed: Se o banco estiver vazio, cria os usuários iniciais
+      if (!uErr && (!usersData || usersData.length === 0)) {
+        await supabase.from('users').insert([
+          { name: 'João Silva (Admin)', email: 'admin@teste.com', role: 'admin' },
+          { name: 'Maria Santos', email: 'maria@teste.com', role: 'user' },
+          { name: 'Pedro Alves', email: 'pedro@teste.com', role: 'user' },
+          { name: 'Ana Costa', email: 'ana@teste.com', role: 'user' }
+        ]);
+        const res = await supabase.from('users').select('*');
+        usersData = res.data;
+      }
+      setUsers(usersData || []);
+
+      // 2. Fetch Assignments
+      const { data: assignData } = await supabase.from('assignments').select('*');
+      setAssignments(assignData || []);
+
+      // 3. Fetch Notices
+      const { data: noticesData } = await supabase.from('notices').select('*').order('date', { ascending: false });
+      setNotices(noticesData || []);
+
+      // 4. Fetch Tips
+      const { data: tipsData } = await supabase.from('tips').select('*');
+      setTips(tipsData || []);
+
+      // 5. Fetch Field Service
+      const { data: fieldData } = await supabase.from('field_service').select('*');
+      setFieldService(fieldData || []);
+
+      // 6. Fetch Quick Links
+      let { data: linksData, error: lErr } = await supabase.from('quick_links').select('*');
+      
+      // Auto-Seed Quick Links para o Dashboard não ficar vazio na primeira vez
+      if (!lErr && (!linksData || linksData.length === 0)) {
+        await supabase.from('quick_links').insert([
+          { label: 'Site JW', icon: 'Globe', url: 'https://jw.org', color: 'bg-sky-100 text-sky-600 dark:bg-sky-500/20 dark:text-sky-400' },
+          { label: 'Biblioteca', icon: 'BookOpen', url: 'https://wol.jw.org', color: 'bg-amber-100 text-amber-600 dark:bg-amber-500/20 dark:text-amber-400' }
+        ]);
+        const resL = await supabase.from('quick_links').select('*');
+        linksData = resL.data;
+      }
+      setQuickLinks(linksData || []);
+
+      setLoading(false);
+    }
+    
+    fetchAllData();
+  }, []);
+
+  useEffect(() => {
+    localStorage.setItem('v2_theme', isDarkMode ? 'dark' : 'light');
+    if (isDarkMode) document.documentElement.classList.add('dark');
+    else document.documentElement.classList.remove('dark');
+  }, [isDarkMode]);
+
+  // "Login" Fake: Pega o admin (primeiro usuário)
+  const currentUser = users.find(u => u.role === 'admin') || users[0] || null;
+
+  // ===== CRUD ASSIGNMENTS =====
+  const createAssignment = async (data) => {
+    const { data: newAssign, error } = await supabase.from('assignments').insert([data]).select();
+    if (!error && newAssign) setAssignments(prev => [...prev, newAssign[0]]);
+  };
+  const updateAssignmentStatus = async (id, newStatus) => {
+    const { error } = await supabase.from('assignments').update({ status: newStatus }).eq('id', id);
+    if (!error) setAssignments(prev => prev.map(a => a.id === id ? { ...a, status: newStatus } : a));
+  };
+  const deleteAssignment = async (id) => {
+    const { error } = await supabase.from('assignments').delete().eq('id', id);
+    if (!error) setAssignments(prev => prev.filter(a => a.id !== id));
+  };
+  const reassignTask = async (assignmentId, newUserId) => {
+    const { error } = await supabase.from('assignments').update({ user_id: newUserId, status: 'pending' }).eq('id', assignmentId);
+    if (!error) setAssignments(prev => prev.map(a => a.id === assignmentId ? { ...a, user_id: newUserId, status: 'pending' } : a));
+  };
+
+  // ===== CRUD USERS =====
+  const createUser = async (data) => {
+    const { data: newUser, error } = await supabase.from('users').insert([data]).select();
+    if (!error && newUser) setUsers(prev => [...prev, newUser[0]]);
+  };
+  const deleteUser = async (id) => {
+    const { error } = await supabase.from('users').delete().eq('id', id);
+    if (!error) setUsers(prev => prev.filter(u => u.id !== id));
+  };
+
+  // ===== CRUD NOTICES =====
+  const createNotice = async (data) => {
+    const { data: newNotice, error } = await supabase.from('notices').insert([data]).select();
+    if (!error && newNotice) setNotices(prev => [newNotice[0], ...prev]);
+  };
+  const deleteNotice = async (id) => {
+    const { error } = await supabase.from('notices').delete().eq('id', id);
+    if (!error) setNotices(prev => prev.filter(n => n.id !== id));
+  };
+
+  // ===== CRUD TIPS =====
+  const createTip = async (data) => {
+    const { data: newTip, error } = await supabase.from('tips').insert([data]).select();
+    if (!error && newTip) setTips(prev => [newTip[0], ...prev]);
+  };
+  const deleteTip = async (id) => {
+    const { error } = await supabase.from('tips').delete().eq('id', id);
+    if (!error) setTips(prev => prev.filter(t => t.id !== id));
+  };
+  const toggleTipActive = async (id) => {
+    const tip = tips.find(t => t.id === id);
+    if (!tip) return;
+    const { error } = await supabase.from('tips').update({ active: !tip.active }).eq('id', id);
+    if (!error) setTips(prev => prev.map(t => t.id === id ? { ...t, active: !t.active } : t));
+  };
+
+  // ===== CRUD FIELD SERVICE =====
+  const createFieldService = async (data) => {
+    const { data: newField, error } = await supabase.from('field_service').insert([data]).select();
+    if (!error && newField) setFieldService(prev => [...prev, newField[0]]);
+  };
+  const deleteFieldService = async (id) => {
+    const { error } = await supabase.from('field_service').delete().eq('id', id);
+    if (!error) setFieldService(prev => prev.filter(f => f.id !== id));
+  };
+
+  // ===== CRUD QUICK LINKS =====
+  const createQuickLink = async (data) => {
+    const { data: newLink, error } = await supabase.from('quick_links').insert([data]).select();
+    if (!error && newLink) setQuickLinks(prev => [...prev, newLink[0]]);
+  };
+  const deleteQuickLink = async (id) => {
+    const { error } = await supabase.from('quick_links').delete().eq('id', id);
+    if (!error) setQuickLinks(prev => prev.filter(l => l.id !== id));
+  };
+
+  const toggleDarkMode = () => setIsDarkMode(!isDarkMode);
+
+  const value = {
+    users, assignments, meetings, notices, tips, fieldService, quickLinks, currentUser, isDarkMode, loading,
+    createAssignment, updateAssignmentStatus, deleteAssignment, reassignTask,
+    createUser, deleteUser,
+    createNotice, deleteNotice,
+    createTip, deleteTip, toggleTipActive,
+    createFieldService, deleteFieldService,
+    createQuickLink, deleteQuickLink,
+    toggleDarkMode
+  };
+
+  return (
+    <DataContext.Provider value={value}>
+      {/* Tela de Loading inicial enquanto busca os dados */}
+      {loading ? (
+        <div className="h-[100dvh] flex flex-col items-center justify-center bg-[#f8fafc] dark:bg-[#0b1120]">
+          <div className="w-12 h-12 border-4 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
+          <p className="mt-4 text-sm font-bold text-slate-500">Conectando ao banco de dados...</p>
+        </div>
+      ) : (
+        children
+      )}
+    </DataContext.Provider>
+  );
+};
+
+export const useData = () => useContext(DataContext);

@@ -1,39 +1,9 @@
-import {
-  addDoc,
-  collection,
-  deleteDoc,
-  doc,
-  getDocs,
-  query,
-  serverTimestamp,
-  startAfter,
-  writeBatch,
-  limit
-} from 'firebase/firestore';
-import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 import { sanitizeText } from '../utils/textUtils';
+import { createDataProvider } from './dataProvider';
 
-const BACKUP_COLLECTIONS = [
-  'users',
-  'assignments',
-  'meetings',
-  'talks',
-  'notifications',
-  'announcements',
-  'swap_logs',
-  'specialEvents',
-  'audit_logs',
-  'swap_requests'
-];
+const provider = createDataProvider();
 
-export function createAppApi({ auth, db, storage, ensureAuth, withRetry }) {
-  const ensureSignedIn = ensureAuth
-    ? ensureAuth
-    : async () => {
-        if (!auth?.currentUser) throw new Error('not-authenticated');
-        return auth.currentUser;
-      };
-
+export function createAppApi() {
   const compressImage = (file) => {
     if (!file || !file.type.startsWith('image/')) return Promise.resolve(file);
     return new Promise((resolve) => {
@@ -74,11 +44,9 @@ export function createAppApi({ auth, db, storage, ensureAuth, withRetry }) {
       payload = await compressImage(file);
     }
     const safeName = `${Date.now()}_${file.name || 'arquivo'}`;
-    const storageRef = ref(storage, `${pathPrefix}/${safeName}`);
-    await uploadBytes(storageRef, payload);
-    const url = await getDownloadURL(storageRef);
+    // Mock upload - return mock URL
     return {
-      url,
+      url: `https://example.com/uploads/${safeName}`,
       name: file.name || 'arquivo',
       type: file.type || 'application/octet-stream',
       size: file.size || 0
@@ -86,77 +54,26 @@ export function createAppApi({ auth, db, storage, ensureAuth, withRetry }) {
   };
 
   const createAnnouncement = async ({ title, message, pinned, authorId }) => {
-    await ensureSignedIn();
-    return addDoc(collection(db, 'announcements'), {
+    const announcement = await provider.createAnnouncement({
       title: sanitizeText(title, 200),
       message: sanitizeText(message, 2000),
       pinned: !!pinned,
       authorId,
-      created_at: serverTimestamp(),
-      read_by: authorId ? [authorId] : []
     });
+    return announcement;
   };
 
   const deleteAnnouncement = async (id) => {
-    await ensureSignedIn();
-    return deleteDoc(doc(db, 'announcements', id));
+    await provider.deleteAnnouncement(id);
+    return id;
   };
 
   const exportData = async () => {
-    await ensureSignedIn();
-    const MAX_EXPORT_LIMIT = 5000;
-    const PAGE_SIZE = 500;
-    const data = {};
-
-    for (const col of BACKUP_COLLECTIONS) {
-      const allDocs = [];
-      let lastDoc = null;
-      let hasMore = true;
-
-      while (hasMore && allDocs.length < MAX_EXPORT_LIMIT) {
-        const q = lastDoc
-          ? query(collection(db, col), startAfter(lastDoc), limit(PAGE_SIZE))
-          : query(collection(db, col), limit(PAGE_SIZE));
-
-        const snap = await withRetry(() => getDocs(q));
-
-        if (snap.empty) {
-          hasMore = false;
-        } else {
-          lastDoc = snap.docs[snap.docs.length - 1];
-          allDocs.push(...snap.docs.map((d) => ({ id: d.id, ...d.data() })));
-          hasMore = snap.docs.length === PAGE_SIZE;
-        }
-      }
-
-      data[col] = allDocs;
-    }
-
-    return data;
+    return await provider.exportAll();
   };
 
   const importData = async (payload) => {
-    await ensureSignedIn();
-    const entries = [];
-    BACKUP_COLLECTIONS.forEach((col) => {
-      const docs = payload?.[col] || [];
-      docs.forEach((item) => {
-        const { id, ...rest } = item;
-        entries.push({ col, id, data: rest });
-      });
-    });
-    const chunks = [];
-    for (let i = 0; i < entries.length; i += 450) {
-      chunks.push(entries.slice(i, i + 450));
-    }
-    for (const chunk of chunks) {
-      const batch = writeBatch(db);
-      chunk.forEach((e) => {
-        const refDoc = doc(db, e.col, e.id || doc(collection(db, e.col)).id);
-        batch.set(refDoc, e.data, { merge: true });
-      });
-      await batch.commit();
-    }
+    await provider.importAll(payload);
   };
 
   return {

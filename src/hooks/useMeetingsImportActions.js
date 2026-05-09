@@ -1,5 +1,5 @@
-import { useCallback, useState } from 'react';
-import { collection, getDocs, orderBy, query, serverTimestamp, where } from 'firebase/firestore';
+import React, { useCallback, useState } from 'react';
+import { createDataProvider } from '../services/dataProvider';
 import { normalizeAssignmentType } from '../utils/assignmentUtils';
 import { normalizeCsvDate, parseCsv } from '../utils/csvUtils';
 import {
