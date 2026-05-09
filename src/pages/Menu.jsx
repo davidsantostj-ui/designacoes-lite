@@ -5,7 +5,7 @@ import { Settings, Shield, Moon, User as UserIcon, LogOut, ChevronRight } from '
 
 export default function MenuPage() {
   const navigate = useNavigate();
-  const { currentUser, assignments, isDarkMode, toggleDarkMode } = useData();
+  const { currentUser, assignments, isDarkMode, toggleDarkMode, logout } = useData();
   const pendingRejected = assignments.filter(a => a.status === 'rejected').length;
 
   return (
@@ -78,6 +78,7 @@ export default function MenuPage() {
         </button>
 
         <button 
+          onClick={logout}
           className="w-full flex items-center justify-center gap-2 p-4 mt-8 rounded-[24px] bg-red-50 dark:bg-red-500/10 border border-red-100 dark:border-red-900/30 text-red-600 dark:text-red-400 shadow-sm hover:bg-red-100 dark:hover:bg-red-500/20 hover:scale-[1.02] transition-all"
         >
           <LogOut size={20} />

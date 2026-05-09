@@ -4,7 +4,7 @@ import { useData } from '../context/DataStore';
 import { User, Mail, Lock, Moon, Sun, Globe, DownloadCloud, Info, ChevronRight, LogOut, ArrowLeft } from 'lucide-react';
 
 export default function Settings() {
-  const { currentUser, isDarkMode, toggleDarkMode } = useData();
+  const { currentUser, isDarkMode, toggleDarkMode, logout } = useData();
   const navigate = useNavigate();
 
   const OptionRow = ({ icon: Icon, title, value, onClick, isLast }) => (
@@ -74,7 +74,7 @@ export default function Settings() {
       </div>
       
       <div className="pt-4 flex justify-center animate-slide-up" style={{ animationDelay: '200ms' }}>
-        <button className="text-xs font-black text-red-500 uppercase tracking-widest px-6 py-4 rounded-2xl hover:bg-red-50 dark:hover:bg-red-500/10 transition-colors flex items-center gap-2">
+        <button onClick={logout} className="text-xs font-black text-red-500 uppercase tracking-widest px-6 py-4 rounded-2xl hover:bg-red-50 dark:hover:bg-red-500/10 transition-colors flex items-center gap-2">
           <LogOut size={16} strokeWidth={3} /> Sair do Aplicativo
         </button>
       </div>

@@ -22,6 +22,7 @@ export const DataProvider = ({ children }) => {
   
   const [isDarkMode, setIsDarkMode] = useState(() => localStorage.getItem('v2_theme') === 'dark');
   const [loading, setLoading] = useState(true);
+  const [currentUser, setCurrentUser] = useState(null);
 
   // Busca todos os dados do Supabase ao iniciar
   useEffect(() => {
@@ -34,15 +35,22 @@ export const DataProvider = ({ children }) => {
       // Auto-Seed: Se o banco estiver vazio, cria os usuários iniciais
       if (!uErr && (!usersData || usersData.length === 0)) {
         await supabase.from('users').insert([
-          { name: 'João Silva (Admin)', email: 'admin@teste.com', role: 'admin' },
-          { name: 'Maria Santos', email: 'maria@teste.com', role: 'user' },
-          { name: 'Pedro Alves', email: 'pedro@teste.com', role: 'user' },
-          { name: 'Ana Costa', email: 'ana@teste.com', role: 'user' }
+          { name: 'João Silva (Admin)', email: 'admin@teste.com', role: 'admin', pin: '1234' },
+          { name: 'Maria Santos', email: 'maria@teste.com', role: 'user', pin: '1234' },
+          { name: 'Pedro Alves', email: 'pedro@teste.com', role: 'user', pin: '1234' },
+          { name: 'Ana Costa', email: 'ana@teste.com', role: 'user', pin: '1234' }
         ]);
         const res = await supabase.from('users').select('*');
         usersData = res.data;
       }
       setUsers(usersData || []);
+
+      // Restaurar sessão
+      const savedUserId = localStorage.getItem('v2_userId');
+      if (savedUserId && usersData) {
+        const foundUser = usersData.find(u => u.id === savedUserId);
+        if (foundUser) setCurrentUser(foundUser);
+      }
 
       // 2. Fetch Assignments
       const { data: assignData } = await supabase.from('assignments').select('*');
@@ -86,8 +94,20 @@ export const DataProvider = ({ children }) => {
     else document.documentElement.classList.remove('dark');
   }, [isDarkMode]);
 
-  // "Login" Fake: Pega o admin (primeiro usuário)
-  const currentUser = users.find(u => u.role === 'admin') || users[0] || null;
+  const login = (userId) => {
+    const user = users.find(u => u.id === userId);
+    if (user) {
+      setCurrentUser(user);
+      localStorage.setItem('v2_userId', user.id);
+      return true;
+    }
+    return false;
+  };
+
+  const logout = () => {
+    setCurrentUser(null);
+    localStorage.removeItem('v2_userId');
+  };
 
   // ===== CRUD ASSIGNMENTS =====
   const createAssignment = async (data) => {
@@ -173,7 +193,7 @@ export const DataProvider = ({ children }) => {
     createTip, deleteTip, toggleTipActive,
     createFieldService, deleteFieldService,
     createQuickLink, deleteQuickLink,
-    toggleDarkMode
+    toggleDarkMode, login, logout
   };
 
   return (

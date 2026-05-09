@@ -11,11 +11,18 @@ import Admin from './pages/Admin';
 import Activities from './pages/Activities';
 import FieldService from './pages/FieldService';
 import MenuPage from './pages/Menu';
+import Login from './pages/Login';
 
 const LayoutContent = () => {
   const navigate = useNavigate();
   const location = useLocation();
-  const { currentUser, assignments } = useData();
+  const { currentUser, assignments, loading } = useData();
+
+  // Se não estiver logado, exibe a tela de Login
+  if (!currentUser) {
+    if (loading) return null; // Evita flash da tela de login durante o fetch inicial
+    return <Login />;
+  }
 
   // Bolinha vermelha no Menu se houver designação rejeitada pendente (Admin)
   const pendingRejected = currentUser?.role === 'admin' ? assignments.filter(a => a.status === 'rejected').length : 0;

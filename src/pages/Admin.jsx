@@ -16,6 +16,8 @@ export default function Admin() {
     createQuickLink, deleteQuickLink
   } = useData();
 
+  const [showNewUserForm, setShowNewUserForm] = useState(false);
+
   const rejectedAssignments = assignments.filter(a => a.status === 'rejected');
 
   const handleReassign = (assignId) => {
@@ -60,6 +62,20 @@ export default function Admin() {
       conductor: e.target.conductor.value
     });
     e.target.reset();
+  };
+
+  const handleNewUser = (e) => {
+    e.preventDefault();
+    const data = new FormData(e.target);
+    createUser({
+      name: data.get('name'),
+      email: data.get('email') || `user_${Date.now()}@app.com`, // Email fake caso não preencha
+      role: data.get('role'),
+      pin: data.get('pin')
+    });
+    alert("Usuário cadastrado com sucesso!");
+    e.target.reset();
+    setShowNewUserForm(false);
   };
 
   const handleNewQuickLink = (e) => {
@@ -220,14 +236,49 @@ export default function Admin() {
         {/* Tab: Usuários */}
         {activeTab === 'USERS' && (
           <div className="space-y-3">
-            <button onClick={() => alert("Modal de novo usuário")} className="w-full rounded-[24px] bg-blue-50 dark:bg-blue-900/20 border border-dashed border-blue-200 dark:border-blue-800 p-4 flex items-center justify-center gap-2 text-sm font-black text-blue-600 dark:text-blue-400 hover:bg-blue-100 dark:hover:bg-blue-900/40 transition-colors">
-              <UserPlus size={18} /> Cadastrar Novo Usuário
-            </button>
+            {!showNewUserForm ? (
+              <button 
+                onClick={() => setShowNewUserForm(true)} 
+                className="w-full rounded-[24px] bg-blue-50 dark:bg-blue-900/20 border border-dashed border-blue-200 dark:border-blue-800 p-4 flex items-center justify-center gap-2 text-sm font-black text-blue-600 dark:text-blue-400 hover:bg-blue-100 dark:hover:bg-blue-900/40 transition-colors"
+              >
+                <UserPlus size={18} /> Cadastrar Novo Usuário
+              </button>
+            ) : (
+              <div className="rounded-[24px] bg-white/60 dark:bg-slate-900/60 backdrop-blur-md border border-slate-200 dark:border-slate-800 p-5 shadow-sm animate-fade-in">
+                <div className="flex items-center justify-between mb-4">
+                  <h3 className="text-sm font-black flex items-center gap-2"><UserPlus size={16} className="text-blue-500"/> Novo Usuário</h3>
+                  <button onClick={() => setShowNewUserForm(false)} className="text-slate-400 hover:text-slate-600">Fechar</button>
+                </div>
+                <form onSubmit={handleNewUser} className="space-y-4">
+                  <div>
+                    <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 block mb-1">Nome Completo</label>
+                    <input name="name" type="text" placeholder="Ex: João Silva" required className="soft-input" />
+                  </div>
+                  <div className="grid grid-cols-2 gap-3">
+                    <div>
+                      <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 block mb-1">PIN de Acesso (4 dígitos)</label>
+                      <input name="pin" type="text" pattern="[0-9]*" maxLength="6" placeholder="Ex: 1234" required className="soft-input font-mono text-center tracking-widest" />
+                    </div>
+                    <div>
+                      <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 block mb-1">Permissão</label>
+                      <select name="role" required className="soft-select">
+                        <option value="user">Publicador</option>
+                        <option value="admin">Administrador</option>
+                      </select>
+                    </div>
+                  </div>
+                  <button type="submit" className="w-full soft-button-primary justify-center py-4">
+                    Salvar Usuário
+                  </button>
+                </form>
+              </div>
+            )}
+
             {users.map(u => (
               <div key={u.id} className="flex items-center justify-between p-4 rounded-[20px] bg-white/60 dark:bg-slate-900/60 backdrop-blur-md border border-slate-200 dark:border-slate-800 shadow-sm">
                 <div>
                   <p className="text-sm font-black text-slate-800 dark:text-slate-100">{u.name}</p>
-                  <p className="text-[10px] uppercase font-bold text-slate-400 mt-0.5">{u.role} • {u.id}</p>
+                  <p className="text-[10px] uppercase font-bold text-slate-400 mt-0.5">{u.role} • PIN: {u.pin || '****'}</p>
                 </div>
                 {u.id !== 'u1' && (
                   <button onClick={() => deleteUser(u.id)} className="text-red-500 p-2 hover:bg-red-50 dark:hover:bg-red-500/10 rounded-xl transition-colors">
