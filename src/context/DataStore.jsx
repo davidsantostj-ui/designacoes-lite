@@ -32,23 +32,33 @@ export const DataProvider = ({ children }) => {
       // 1. Fetch Users
       let { data: usersData, error: uErr } = await supabase.from('users').select('*');
       
+      if (uErr) {
+        console.error('[DataStore] Erro ao buscar usuários:', uErr.message, uErr);
+      }
+
       // Auto-Seed: Se o banco estiver vazio, cria os usuários iniciais
       if (!uErr && (!usersData || usersData.length === 0)) {
-        await supabase.from('users').insert([
+        console.log('[DataStore] Banco vazio, criando usuários iniciais...');
+        const { error: seedErr } = await supabase.from('users').insert([
           { name: 'David Santos', email: 'david@admin.com', role: 'admin', pin: '1804' },
           { name: 'Maria Santos', email: 'maria@teste.com', role: 'user', pin: '1234' },
           { name: 'Pedro Alves', email: 'pedro@teste.com', role: 'user', pin: '1234' },
           { name: 'Ana Costa', email: 'ana@teste.com', role: 'user', pin: '1234' }
         ]);
+        if (seedErr) {
+          console.error('[DataStore] Erro no auto-seed:', seedErr.message, seedErr);
+          console.error('[DataStore] DICA: Execute o arquivo update_database.sql no SQL Editor do Supabase para criar a coluna pin e o usuário admin.');
+        }
         const res = await supabase.from('users').select('*');
         usersData = res.data;
       } else if (!uErr && usersData) {
         // Fallback: Garantir que o David Santos exista
         const hasDavid = usersData.find(u => u.name === 'David Santos');
         if (!hasDavid) {
-          await supabase.from('users').insert([
+          const { error: fallbackErr } = await supabase.from('users').insert([
             { name: 'David Santos', email: 'david@admin.com', role: 'admin', pin: '1804' }
           ]);
+          if (fallbackErr) console.error('[DataStore] Erro ao criar David Santos:', fallbackErr.message);
           const res = await supabase.from('users').select('*');
           usersData = res.data;
         }
