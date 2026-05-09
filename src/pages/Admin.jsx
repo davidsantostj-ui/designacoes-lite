@@ -166,7 +166,8 @@ export default function Admin() {
   const currentItem = menuItems.find(m => m.id === activeTab);
 
   return (
-    <div className="space-y-6 pb-20 animate-fade-in">
+    <>
+      <div className="space-y-6 pb-20 animate-fade-in">
       
       {/* Header Interno com Botão Voltar */}
       <div className="flex items-center gap-3 mb-6">
@@ -526,7 +527,6 @@ export default function Admin() {
         )}
 
       </div>
-    </div>
 
     {/* Toast — substitui alert() */}
     {toast && <AdminToast msg={toast.msg} type={toast.type} onClose={() => setToast(null)} />}
