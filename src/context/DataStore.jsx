@@ -165,11 +165,49 @@ export const DataProvider = ({ children }) => {
       )
       .subscribe();
 
+    // Canal: field_service
+    const fieldServiceChannel = supabase
+      .channel('realtime-field-service')
+      .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'field_service' },
+        (payload) => {
+          const mapped = {
+            id: payload.new.id,
+            dayOfWeek: payload.new.day_of_week || payload.new.dayOfWeek || '',
+            time: payload.new.time,
+            type: payload.new.type,
+            location_or_link: payload.new.location_or_link,
+            conductor: payload.new.conductor
+          };
+          setFieldService(prev => {
+            if (prev.some(x => x.id === mapped.id)) return prev;
+            return [...prev, mapped];
+          });
+        }
+      )
+      .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'field_service' },
+        (payload) => {
+          const mapped = {
+            id: payload.new.id,
+            dayOfWeek: payload.new.day_of_week || payload.new.dayOfWeek || '',
+            time: payload.new.time,
+            type: payload.new.type,
+            location_or_link: payload.new.location_or_link,
+            conductor: payload.new.conductor
+          };
+          setFieldService(prev => prev.map(f => f.id === mapped.id ? mapped : f));
+        }
+      )
+      .on('postgres_changes', { event: 'DELETE', schema: 'public', table: 'field_service' },
+        (payload) => setFieldService(prev => prev.filter(f => f.id !== payload.old.id))
+      )
+      .subscribe();
+
     // Cleanup: unsubscribe ao desmontar
     return () => {
       supabase.removeChannel(assignChannel);
       supabase.removeChannel(usersChannel);
       supabase.removeChannel(noticesChannel);
+      supabase.removeChannel(fieldServiceChannel);
     };
   }, []);
 

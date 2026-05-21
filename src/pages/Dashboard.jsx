@@ -12,14 +12,17 @@ export default function Dashboard() {
   return (
     <div className="space-y-6 pb-20 animate-fade-in">
       
-      {/* Seção 2: Destaque e Links Rápidos */}
-      <section className="grid grid-cols-2 gap-4 items-stretch">
-        <div className="h-full min-h-[160px]">
-          <HeroSection />
-        </div>
-        <div className="h-full min-h-[160px]">
-          <QuickLinks />
-        </div>
+      {/* Seção 2: Destaque (Próxima Designação) */}
+      <section className="animate-slide-up" style={{ animationDelay: '0ms' }}>
+        <HeroSection />
+      </section>
+
+      {/* Seção: Links Rápidos (Acomoda até 6 botões de forma uniforme) */}
+      <section className="space-y-2.5 animate-slide-up" style={{ animationDelay: '30ms' }}>
+        <h3 className="text-[10px] uppercase tracking-[0.2em] font-black text-slate-400 dark:text-slate-500 pl-1">
+          Links Rápidos
+        </h3>
+        <QuickLinks />
       </section>
 
       {/* Seção 3: Avisos */}
