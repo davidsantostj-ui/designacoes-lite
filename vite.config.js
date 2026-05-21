@@ -6,7 +6,7 @@ module.exports = defineConfig({
   plugins: [
     react(),
     VitePWA({
-      registerType: 'prompt',
+      registerType: 'autoUpdate',
       injectRegister: 'auto',
       manifest: false, // O app já tem manifest no index.html e public/manifest.json
       workbox: {
