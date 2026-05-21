@@ -2,7 +2,7 @@ import React from 'react';
 import { useData } from '../context/DataStore';
 import { ArrowLeft, BookOpen, CheckCircle2 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
-import { parseLinks } from '../utils/textUtils';
+import RichTextDisplay from '../components/RichTextDisplay';
 
 export default function Activities() {
   const { tips } = useData();
@@ -30,44 +30,29 @@ export default function Activities() {
 
       <div className="space-y-4">
         {tips.length === 0 ? (
-          <div className="text-center p-8 rounded-3xl border border-dashed border-slate-200 dark:border-slate-800">
+          <div className="text-center p-8 rounded-[28px] border border-dashed border-slate-200 dark:border-slate-800">
             <p className="text-sm text-slate-400 font-bold">Nenhuma atividade no momento.</p>
           </div>
         ) : (
           tips.map(tip => (
             <div 
               key={tip.id} 
-              className={`relative overflow-hidden rounded-[24px] bg-white dark:bg-slate-900/50 border shadow-sm p-5 ${tip.active ? 'border-blue-200 dark:border-blue-900/30' : 'border-slate-200 dark:border-slate-800'}`}
+              className={`relative overflow-hidden rounded-[28px] bg-white/70 dark:bg-slate-900/60 backdrop-blur-md border shadow-sm p-6 hover:shadow-md hover:scale-[1.01] hover:border-slate-300 dark:hover:border-slate-700 transition-all duration-300 ${tip.active ? 'border-indigo-500/50 dark:border-indigo-500/40 shadow-[0_8px_30px_rgb(0,0,0,0.02)] dark:shadow-[0_8px_30px_rgb(0,0,0,0.2)]' : 'border-slate-200/80 dark:border-slate-800/80'}`}
             >
-              <div className={`absolute left-0 top-0 bottom-0 w-1.5 ${tip.active ? 'bg-gradient-to-b from-blue-400 to-indigo-500' : 'bg-slate-300 dark:bg-slate-700'}`}></div>
+              <div className={`absolute left-0 top-0 bottom-0 w-1.5 ${tip.active ? 'bg-gradient-to-b from-indigo-500 via-purple-500 to-teal-500' : 'bg-slate-300 dark:bg-slate-700'}`}></div>
               
               <div className="flex gap-4 items-start pl-2">
-                <div className={`mt-1 p-2 rounded-xl ${tip.active ? 'bg-blue-100 dark:bg-blue-500/20 text-blue-600 dark:text-blue-400' : 'bg-slate-100 dark:bg-slate-800 text-slate-500'}`}>
+                <div className={`mt-0.5 p-3 rounded-2xl transition-all duration-300 ${tip.active ? 'bg-gradient-to-br from-indigo-500 to-purple-600 text-white shadow-md shadow-indigo-500/20' : 'bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400'}`}>
                   <BookOpen size={20} />
                 </div>
-                <div>
+                <div className="flex-1 min-w-0">
                   <h4 className="text-base font-black text-slate-800 dark:text-slate-100">{tip.title}</h4>
-                  <p className="text-sm text-slate-500 dark:text-slate-400 mt-1 leading-relaxed font-medium">
-                    {parseLinks(tip.content).map((chunk, index) => 
-                      chunk.isLink ? (
-                        <a 
-                          key={index} 
-                          href={chunk.text} 
-                          target="_blank" 
-                          rel="noreferrer" 
-                          className="text-blue-600 dark:text-blue-400 hover:underline break-all font-bold"
-                        >
-                          {chunk.text}
-                        </a>
-                      ) : (
-                        chunk.text
-                      )
-                    )}
-                  </p>
+                  
+                  <RichTextDisplay content={tip.content} className="mt-2" />
                   
                   {tip.active && (
-                    <div className="mt-3 inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-green-50 dark:bg-green-500/10 text-green-600 dark:text-green-400 text-[11px] font-bold">
-                      <CheckCircle2 size={14} /> Ativo esta semana
+                    <div className="mt-4 inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-gradient-to-r from-emerald-500/10 to-teal-500/10 border border-emerald-500/20 text-emerald-600 dark:text-emerald-400 text-[11px] font-extrabold tracking-wide uppercase shadow-sm animate-pulse">
+                      <CheckCircle2 size={13} /> Ativo esta semana
                     </div>
                   )}
                 </div>

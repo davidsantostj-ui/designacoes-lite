@@ -158,7 +158,13 @@ export const DataProvider = ({ children }) => {
     const noticesChannel = supabase
       .channel('realtime-notices')
       .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'notices' },
-        (payload) => setNotices(prev => [payload.new, ...prev])
+        (payload) => setNotices(prev => {
+          if (prev.some(x => x.id === payload.new.id)) return prev;
+          return [payload.new, ...prev];
+        })
+      )
+      .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'notices' },
+        (payload) => setNotices(prev => prev.map(n => n.id === payload.new.id ? payload.new : n))
       )
       .on('postgres_changes', { event: 'DELETE', schema: 'public', table: 'notices' },
         (payload) => setNotices(prev => prev.filter(n => n.id !== payload.old.id))
@@ -202,12 +208,48 @@ export const DataProvider = ({ children }) => {
       )
       .subscribe();
 
+    // Canal: tips
+    const tipsChannel = supabase
+      .channel('realtime-tips')
+      .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'tips' },
+        (payload) => setTips(prev => {
+          if (prev.some(x => x.id === payload.new.id)) return prev;
+          return [payload.new, ...prev];
+        })
+      )
+      .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'tips' },
+        (payload) => setTips(prev => prev.map(t => t.id === payload.new.id ? payload.new : t))
+      )
+      .on('postgres_changes', { event: 'DELETE', schema: 'public', table: 'tips' },
+        (payload) => setTips(prev => prev.filter(t => t.id !== payload.old.id))
+      )
+      .subscribe();
+
+    // Canal: quick_links
+    const quickLinksChannel = supabase
+      .channel('realtime-quick-links')
+      .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'quick_links' },
+        (payload) => setQuickLinks(prev => {
+          if (prev.some(x => x.id === payload.new.id)) return prev;
+          return [...prev, payload.new];
+        })
+      )
+      .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'quick_links' },
+        (payload) => setQuickLinks(prev => prev.map(l => l.id === payload.new.id ? payload.new : l))
+      )
+      .on('postgres_changes', { event: 'DELETE', schema: 'public', table: 'quick_links' },
+        (payload) => setQuickLinks(prev => prev.filter(l => l.id !== payload.old.id))
+      )
+      .subscribe();
+
     // Cleanup: unsubscribe ao desmontar
     return () => {
       supabase.removeChannel(assignChannel);
       supabase.removeChannel(usersChannel);
       supabase.removeChannel(noticesChannel);
       supabase.removeChannel(fieldServiceChannel);
+      supabase.removeChannel(tipsChannel);
+      supabase.removeChannel(quickLinksChannel);
     };
   }, []);
 
@@ -270,6 +312,14 @@ export const DataProvider = ({ children }) => {
     const { data: newNotice, error } = await supabase.from('notices').insert([data]).select();
     if (!error && newNotice) setNotices(prev => [newNotice[0], ...prev]);
   };
+  const updateNotice = async (id, data) => {
+    const { data: updatedNotice, error } = await supabase.from('notices').update(data).eq('id', id).select();
+    if (!error && updatedNotice) {
+      setNotices(prev => prev.map(n => n.id === id ? updatedNotice[0] : n));
+      return true;
+    }
+    return false;
+  };
   const deleteNotice = async (id) => {
     const { error } = await supabase.from('notices').delete().eq('id', id);
     if (!error) setNotices(prev => prev.filter(n => n.id !== id));
@@ -279,6 +329,14 @@ export const DataProvider = ({ children }) => {
   const createTip = async (data) => {
     const { data: newTip, error } = await supabase.from('tips').insert([data]).select();
     if (!error && newTip) setTips(prev => [newTip[0], ...prev]);
+  };
+  const updateTip = async (id, data) => {
+    const { data: updatedTip, error } = await supabase.from('tips').update(data).eq('id', id).select();
+    if (!error && updatedTip) {
+      setTips(prev => prev.map(t => t.id === id ? updatedTip[0] : t));
+      return true;
+    }
+    return false;
   };
   const deleteTip = async (id) => {
     const { error } = await supabase.from('tips').delete().eq('id', id);
@@ -315,6 +373,29 @@ export const DataProvider = ({ children }) => {
       setFieldService(prev => [...prev, mapped]);
     }
   };
+  const updateFieldService = async (id, data) => {
+    const dbData = {
+      day_of_week: data.dayOfWeek,
+      time: data.time,
+      type: data.type,
+      location_or_link: data.location_or_link,
+      conductor: data.conductor
+    };
+    const { data: updatedField, error } = await supabase.from('field_service').update(dbData).eq('id', id).select();
+    if (!error && updatedField) {
+      const mapped = {
+        id: updatedField[0].id,
+        dayOfWeek: updatedField[0].day_of_week,
+        time: updatedField[0].time,
+        type: updatedField[0].type,
+        location_or_link: updatedField[0].location_or_link,
+        conductor: updatedField[0].conductor
+      };
+      setFieldService(prev => prev.map(f => f.id === id ? mapped : f));
+      return true;
+    }
+    return false;
+  };
   const deleteFieldService = async (id) => {
     const { error } = await supabase.from('field_service').delete().eq('id', id);
     if (!error) setFieldService(prev => prev.filter(f => f.id !== id));
@@ -338,6 +419,14 @@ export const DataProvider = ({ children }) => {
     const { data: newLink, error } = await supabase.from('quick_links').insert([data]).select();
     if (!error && newLink) setQuickLinks(prev => [...prev, newLink[0]]);
   };
+  const updateQuickLink = async (id, data) => {
+    const { data: updatedLink, error } = await supabase.from('quick_links').update(data).eq('id', id).select();
+    if (!error && updatedLink) {
+      setQuickLinks(prev => prev.map(l => l.id === id ? updatedLink[0] : l));
+      return true;
+    }
+    return false;
+  };
   const deleteQuickLink = async (id) => {
     const { error } = await supabase.from('quick_links').delete().eq('id', id);
     if (!error) setQuickLinks(prev => prev.filter(l => l.id !== id));
@@ -349,10 +438,10 @@ export const DataProvider = ({ children }) => {
     users, assignments, meetings, notices, tips, fieldService, quickLinks, currentUser, isDarkMode, loading,
     createAssignment, updateAssignmentStatus, deleteAssignment, reassignTask,
     createUser, deleteUser, updateUserRole, updateUserProfile,
-    createNotice, deleteNotice,
-    createTip, deleteTip, toggleTipActive,
-    createFieldService, deleteFieldService,
-    createQuickLink, deleteQuickLink,
+    createNotice, updateNotice, deleteNotice,
+    createTip, updateTip, deleteTip, toggleTipActive,
+    createFieldService, updateFieldService, deleteFieldService,
+    createQuickLink, updateQuickLink, deleteQuickLink,
     toggleDarkMode, login, logout,
     refreshData: () => fetchAllData(false)
   };

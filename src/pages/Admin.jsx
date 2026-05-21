@@ -1,9 +1,11 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useData } from '../context/DataStore';
-import { ShieldAlert, ShieldCheck, Shield, UserPlus, CalendarPlus, FileSpreadsheet, AlertTriangle, Users, MessageSquare, CheckCircle2, Trash2, LayoutDashboard, BookOpen, MapPin, Link as LinkIcon, Plus, Eye, EyeOff, ChevronRight, ArrowLeft, X } from 'lucide-react';
+import { ShieldAlert, ShieldCheck, Shield, UserPlus, CalendarPlus, FileSpreadsheet, AlertTriangle, Users, MessageSquare, CheckCircle2, Trash2, LayoutDashboard, BookOpen, MapPin, Link as LinkIcon, Plus, Eye, EyeOff, ChevronRight, ArrowLeft, X, Edit2 } from 'lucide-react';
 import { parseCsv, normalizeCsvDate } from '../utils/csvUtils';
 import { buildAssignmentWhatsAppLink } from '../utils/textUtils';
 import { supabase } from '../lib/supabase';
+import RichTextEditor from '../components/RichTextEditor';
+import RichTextDisplay from '../components/RichTextDisplay';
 
 // Toast interno — sem usar alert()
 function AdminToast({ msg, type, onClose }) {
@@ -25,16 +27,28 @@ export default function Admin() {
     assignments, users, notices, tips, fieldService, quickLinks, currentUser,
     createAssignment, reassignTask, deleteAssignment, 
     createUser, deleteUser, updateUserRole,
-    createNotice, deleteNotice,
-    createTip, deleteTip, toggleTipActive,
-    createFieldService, deleteFieldService,
-    createQuickLink, deleteQuickLink
+    createNotice, updateNotice, deleteNotice,
+    createTip, updateTip, deleteTip, toggleTipActive,
+    createFieldService, updateFieldService, deleteFieldService,
+    createQuickLink, updateQuickLink, deleteQuickLink
   } = useData();
 
   const [showNewUserForm, setShowNewUserForm] = useState(false);
   const [toast, setToast] = useState(null);
   const [reassignModal, setReassignModal] = useState(null); // { assignId }
   const [reassignUserId, setReassignUserId] = useState('');
+
+  // Editing state variables
+  const [editingNotice, setEditingNotice] = useState(null);
+  const [editingTip, setEditingTip] = useState(null);
+  const [editingFieldService, setEditingFieldService] = useState(null);
+  const [editingQuickLink, setEditingQuickLink] = useState(null);
+
+  // Rich Text editor state variables
+  const [newNoticeContent, setNewNoticeContent] = useState('');
+  const [newTipContent, setNewTipContent] = useState('');
+  const [editNoticeContent, setEditNoticeContent] = useState('');
+  const [editTipContent, setEditTipContent] = useState('');
 
   // CSV Import States
   const [csvPreview, setCsvPreview] = useState(null);
@@ -196,10 +210,12 @@ export default function Admin() {
     e.preventDefault();
     createTip({
       title: e.target.title.value,
-      content: e.target.content.value,
+      content: newTipContent,
       active: false
     });
     e.target.reset();
+    setNewTipContent('');
+    showToast('Dica espiritual adicionada com sucesso!');
   };
 
   const handleNewFieldService = (e) => {
@@ -583,12 +599,16 @@ export default function Admin() {
               <h3 className="text-sm font-black mb-4 flex items-center gap-2"><MessageSquare size={16} className="text-amber-500"/> Novo Aviso</h3>
               <form onSubmit={(e) => {
                 e.preventDefault();
-                createNotice({ title: e.target.title.value, content: e.target.content.value });
+                createNotice({ title: e.target.title.value, content: newNoticeContent });
                 showToast('Aviso publicado!');
                 e.target.reset();
+                setNewNoticeContent('');
               }} className="space-y-4">
                 <input name="title" type="text" placeholder="Título do aviso" required className="soft-input" />
-                <textarea name="content" placeholder="Conteúdo da mensagem..." required className="soft-textarea" />
+                <div className="space-y-1">
+                  <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 block mb-1">Conteúdo do Aviso</label>
+                  <RichTextEditor value={newNoticeContent} onChange={setNewNoticeContent} placeholder="Conteúdo do aviso..." />
+                </div>
                 <button type="submit" className="w-full bg-amber-500 hover:bg-amber-600 text-white text-xs font-black tracking-widest uppercase py-4 rounded-xl transition-colors shadow-lg shadow-amber-500/30">
                   Publicar Aviso
                 </button>
@@ -598,11 +618,23 @@ export default function Admin() {
             <div className="space-y-3">
               {notices.map(n => (
                 <div key={n.id} className="p-4 rounded-[20px] bg-white/60 dark:bg-slate-900/60 backdrop-blur-md border border-slate-200 dark:border-slate-800 shadow-sm flex items-start justify-between">
-                  <div>
+                  <div className="flex-1 min-w-0">
                     <h4 className="text-sm font-black text-slate-800 dark:text-slate-100">{n.title}</h4>
-                    <p className="text-xs text-slate-500 font-medium mt-1 pr-4">{n.content}</p>
+                    <RichTextDisplay content={n.content} className="mt-1.5 text-xs pr-4 text-slate-500" />
                   </div>
-                  <button onClick={() => deleteNotice(n.id)} className="text-red-500 p-2 bg-slate-50 dark:bg-slate-800 rounded-xl hover:bg-red-50 dark:hover:bg-red-500/10 transition-colors"><Trash2 size={16} /></button>
+                  <div className="flex items-center gap-2 shrink-0">
+                    <button 
+                      onClick={() => {
+                        setEditingNotice(n);
+                        setEditNoticeContent(n.content || '');
+                      }} 
+                      className="p-2 text-blue-500 bg-slate-50 dark:bg-slate-800 rounded-xl hover:bg-blue-50 dark:hover:bg-blue-500/10 transition-colors"
+                      title="Editar Aviso"
+                    >
+                      <Edit2 size={16} />
+                    </button>
+                    <button onClick={() => deleteNotice(n.id)} className="text-red-500 p-2 bg-slate-50 dark:bg-slate-800 rounded-xl hover:bg-red-50 dark:hover:bg-red-500/10 transition-colors"><Trash2 size={16} /></button>
+                  </div>
                 </div>
               ))}
             </div>
@@ -622,7 +654,10 @@ export default function Admin() {
               <div className="rounded-[24px] bg-white/60 dark:bg-slate-900/60 backdrop-blur-md border border-slate-200 dark:border-slate-800 p-5 shadow-sm">
                 <form onSubmit={handleNewTip} className="space-y-3">
                   <input name="title" type="text" placeholder="Título da Dica" required className="soft-input" />
-                  <textarea name="content" placeholder="Conteúdo da dica..." required className="soft-input min-h-[80px]" />
+                  <div className="space-y-1">
+                    <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 block mb-1">Conteúdo da Dica</label>
+                    <RichTextEditor value={newTipContent} onChange={setNewTipContent} placeholder="Escreva a dica espiritual com formatação..." />
+                  </div>
                   <button type="submit" className="soft-button-primary w-full justify-center">
                     <Plus size={16} /> Adicionar Dica
                   </button>
@@ -633,11 +668,21 @@ export default function Admin() {
                 {tips.map(tip => (
                   <div key={tip.id} className="flex flex-col gap-2 p-4 rounded-[20px] bg-white/40 dark:bg-slate-900/40 border border-slate-200 dark:border-slate-800">
                     <div className="flex items-start justify-between">
-                      <div className="flex-1">
+                      <div className="flex-1 min-w-0">
                         <h4 className="text-sm font-black text-slate-800 dark:text-slate-100">{tip.title}</h4>
-                        <p className="text-xs text-slate-500 font-medium mt-0.5">{tip.content}</p>
+                        <RichTextDisplay content={tip.content} className="mt-1 text-xs text-slate-500" />
                       </div>
-                      <div className="flex items-center gap-2 ml-4">
+                      <div className="flex items-center gap-2 ml-4 shrink-0">
+                        <button 
+                          onClick={() => {
+                            setEditingTip(tip);
+                            setEditTipContent(tip.content || '');
+                          }} 
+                          className="p-2 rounded-xl text-blue-500 bg-blue-50 dark:bg-blue-500/10 hover:bg-blue-100 transition-colors"
+                          title="Editar Dica"
+                        >
+                          <Edit2 size={16} />
+                        </button>
                         <button 
                           onClick={() => toggleTipActive(tip.id)} 
                           className={`p-2 rounded-xl transition-colors ${tip.active ? 'bg-emerald-100 text-emerald-600 dark:bg-emerald-500/20 dark:text-emerald-400' : 'bg-slate-100 text-slate-400 dark:bg-slate-800'}`}
@@ -695,9 +740,18 @@ export default function Admin() {
                       <p className="text-sm font-black text-slate-800 dark:text-slate-100">{f.dayOfWeek} às {f.time}</p>
                       <p className="text-[10px] uppercase font-bold text-slate-500 mt-0.5">{f.type} • {f.conductor}</p>
                     </div>
-                    <button onClick={() => deleteFieldService(f.id)} className="text-red-500 p-2 hover:bg-red-50 dark:hover:bg-red-500/10 rounded-xl transition-colors">
-                      <Trash2 size={16} />
-                    </button>
+                    <div className="flex items-center gap-2">
+                      <button 
+                        onClick={() => setEditingFieldService(f)} 
+                        className="p-2 text-blue-500 hover:bg-blue-50 dark:hover:bg-blue-500/10 rounded-xl transition-colors"
+                        title="Editar Serviço de Campo"
+                      >
+                        <Edit2 size={16} />
+                      </button>
+                      <button onClick={() => deleteFieldService(f.id)} className="text-red-500 p-2 hover:bg-red-50 dark:hover:bg-red-500/10 rounded-xl transition-colors">
+                        <Trash2 size={16} />
+                      </button>
+                    </div>
                   </div>
                 ))}
               </div>
@@ -740,12 +794,27 @@ export default function Admin() {
 
               <div className="grid grid-cols-2 gap-2">
                 {quickLinks.map(link => (
-                  <div key={link.id} className="relative p-3 rounded-2xl bg-white/40 dark:bg-slate-900/40 border border-slate-200 dark:border-slate-800">
-                    <p className="text-xs font-black text-slate-800 dark:text-slate-100 line-clamp-1 pr-6">{link.label}</p>
-                    <p className="text-[9px] text-slate-500 line-clamp-1 mt-0.5">{link.url}</p>
-                    <button onClick={() => deleteQuickLink(link.id)} className="absolute top-2 right-2 text-red-500 hover:bg-red-50 dark:hover:bg-red-500/10 p-1.5 rounded-lg transition-colors">
-                      <Trash2 size={14} />
-                    </button>
+                  <div key={link.id} className="relative p-3.5 rounded-2xl bg-white/40 dark:bg-slate-900/40 border border-slate-200 dark:border-slate-800 flex flex-col justify-between">
+                    <div>
+                      <p className="text-xs font-black text-slate-800 dark:text-slate-100 line-clamp-1 pr-14">{link.label}</p>
+                      <p className="text-[9px] text-slate-500 line-clamp-1 mt-0.5">{link.url}</p>
+                    </div>
+                    <div className="flex items-center gap-1 mt-3 justify-end">
+                      <button 
+                        onClick={() => setEditingQuickLink(link)} 
+                        className="p-1.5 text-blue-500 hover:bg-blue-50 dark:hover:bg-blue-500/10 rounded-lg transition-colors"
+                        title="Editar Link"
+                      >
+                        <Edit2 size={13} />
+                      </button>
+                      <button 
+                        onClick={() => deleteQuickLink(link.id)} 
+                        className="p-1.5 text-red-500 hover:bg-red-50 dark:hover:bg-red-500/10 rounded-lg transition-colors"
+                        title="Excluir Link"
+                      >
+                        <Trash2 size={13} />
+                      </button>
+                    </div>
                   </div>
                 ))}
               </div>
@@ -756,6 +825,284 @@ export default function Admin() {
 
       </div>
     </div>
+
+    {/* Modais de Edição de Conteúdo (Avisos, Dicas, Serviço de Campo e Links Rápidos) */}
+    {editingNotice && (
+      <div className="fixed inset-0 bg-black/60 backdrop-blur-md z-[9998] flex items-center justify-center p-4">
+        <div className="w-full max-w-lg bg-white dark:bg-slate-900 rounded-[28px] p-6 shadow-2xl animate-scale-up border border-slate-200 dark:border-slate-800 flex flex-col">
+          <div className="flex items-center justify-between pb-4 border-b border-slate-200 dark:border-slate-800 mb-4">
+            <h3 className="text-base font-black text-slate-800 dark:text-slate-100 flex items-center gap-2">
+              <MessageSquare size={18} className="text-amber-500" /> Editar Aviso
+            </h3>
+            <button onClick={() => setEditingNotice(null)} className="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200">
+              <X size={20} />
+            </button>
+          </div>
+          <form 
+            onSubmit={async (e) => {
+              e.preventDefault();
+              const success = await updateNotice(editingNotice.id, {
+                title: e.target.title.value,
+                content: editNoticeContent
+              });
+              if (success) {
+                showToast('Aviso atualizado com sucesso!');
+                setEditingNotice(null);
+              } else {
+                showToast('Erro ao atualizar aviso.', 'error');
+              }
+            }} 
+            className="space-y-4"
+          >
+            <div>
+              <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 block mb-1">Título</label>
+              <input name="title" type="text" defaultValue={editingNotice.title} required className="soft-input" />
+            </div>
+            <div className="space-y-1">
+              <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 block mb-1">Mensagem (Texto Rico)</label>
+              <RichTextEditor value={editNoticeContent} onChange={setEditNoticeContent} placeholder="Conteúdo do aviso..." />
+            </div>
+            <div className="flex gap-3 pt-2">
+              <button 
+                type="button" 
+                onClick={() => setEditingNotice(null)} 
+                className="flex-1 py-3 rounded-xl border border-slate-200 dark:border-slate-700 text-sm font-black text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors"
+              >
+                Cancelar
+              </button>
+              <button 
+                type="submit" 
+                className="flex-1 py-3 rounded-xl bg-amber-500 text-white text-sm font-black hover:bg-amber-600 transition-colors shadow-lg shadow-amber-500/25"
+              >
+                Salvar Alterações
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+    )}
+
+    {editingTip && (
+      <div className="fixed inset-0 bg-black/60 backdrop-blur-md z-[9998] flex items-center justify-center p-4">
+        <div className="w-full max-w-lg bg-white dark:bg-slate-900 rounded-[28px] p-6 shadow-2xl animate-scale-up border border-slate-200 dark:border-slate-800 flex flex-col">
+          <div className="flex items-center justify-between pb-4 border-b border-slate-200 dark:border-slate-800 mb-4">
+            <h3 className="text-base font-black text-slate-800 dark:text-slate-100 flex items-center gap-2">
+              <BookOpen size={18} className="text-indigo-500" /> Editar Dica Espiritual
+            </h3>
+            <button onClick={() => setEditingTip(null)} className="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200">
+              <X size={20} />
+            </button>
+          </div>
+          <form 
+            onSubmit={async (e) => {
+              e.preventDefault();
+              const success = await updateTip(editingTip.id, {
+                title: e.target.title.value,
+                content: editTipContent
+              });
+              if (success) {
+                showToast('Dica espiritual atualizada!');
+                setEditingTip(null);
+              } else {
+                showToast('Erro ao atualizar dica.', 'error');
+              }
+            }} 
+            className="space-y-4"
+          >
+            <div>
+              <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 block mb-1">Título</label>
+              <input name="title" type="text" defaultValue={editingTip.title} required className="soft-input" />
+            </div>
+            <div className="space-y-1">
+              <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 block mb-1">Conteúdo (Texto Rico)</label>
+              <RichTextEditor value={editTipContent} onChange={setEditTipContent} placeholder="Conteúdo da dica..." />
+            </div>
+            <div className="flex gap-3 pt-2">
+              <button 
+                type="button" 
+                onClick={() => setEditingTip(null)} 
+                className="flex-1 py-3 rounded-xl border border-slate-200 dark:border-slate-700 text-sm font-black text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors"
+              >
+                Cancelar
+              </button>
+              <button 
+                type="submit" 
+                className="flex-1 py-3 rounded-xl bg-indigo-500 text-white text-sm font-black hover:bg-indigo-600 transition-colors shadow-lg shadow-indigo-500/25"
+              >
+                Salvar Alterações
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+    )}
+
+    {editingFieldService && (
+      <div className="fixed inset-0 bg-black/60 backdrop-blur-md z-[9998] flex items-center justify-center p-4">
+        <div className="w-full max-w-md bg-white dark:bg-slate-900 rounded-[28px] p-6 shadow-2xl animate-scale-up border border-slate-200 dark:border-slate-800 flex flex-col">
+          <div className="flex items-center justify-between pb-4 border-b border-slate-200 dark:border-slate-800 mb-4">
+            <h3 className="text-base font-black text-slate-800 dark:text-slate-100 flex items-center gap-2">
+              <MapPin size={18} className="text-emerald-500" /> Editar Serviço de Campo
+            </h3>
+            <button onClick={() => setEditingFieldService(null)} className="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200">
+              <X size={20} />
+            </button>
+          </div>
+          <form 
+            onSubmit={async (e) => {
+              e.preventDefault();
+              const success = await updateFieldService(editingFieldService.id, {
+                dayOfWeek: e.target.dayOfWeek.value,
+                time: e.target.time.value,
+                type: e.target.type.value,
+                location_or_link: e.target.location_or_link.value,
+                conductor: e.target.conductor.value
+              });
+              if (success) {
+                showToast('Serviço de campo atualizado!');
+                setEditingFieldService(null);
+              } else {
+                showToast('Erro ao atualizar serviço de campo.', 'error');
+              }
+            }} 
+            className="space-y-4"
+          >
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 block mb-1">Dia da Semana</label>
+                <select name="dayOfWeek" defaultValue={editingFieldService.dayOfWeek} required className="soft-select">
+                  <option value="Sábado">Sábado</option>
+                  <option value="Domingo">Domingo</option>
+                  <option value="Segunda">Segunda</option>
+                  <option value="Terça">Terça</option>
+                  <option value="Quarta">Quarta</option>
+                  <option value="Quinta">Quinta</option>
+                  <option value="Sexta">Sexta</option>
+                </select>
+              </div>
+              <div>
+                <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 block mb-1">Horário</label>
+                <input name="time" type="time" defaultValue={editingFieldService.time} required className="soft-input" />
+              </div>
+            </div>
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 block mb-1">Tipo</label>
+                <select name="type" defaultValue={editingFieldService.type} required className="soft-select">
+                  <option value="Presencial">Presencial</option>
+                  <option value="Zoom">Zoom</option>
+                </select>
+              </div>
+              <div>
+                <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 block mb-1">Dirigente</label>
+                <input name="conductor" type="text" defaultValue={editingFieldService.conductor} required className="soft-input" />
+              </div>
+            </div>
+            <div>
+              <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 block mb-1">Endereço ou Link do Zoom</label>
+              <input name="location_or_link" type="text" defaultValue={editingFieldService.location_or_link} required className="soft-input" />
+            </div>
+            <div className="flex gap-3 pt-2">
+              <button 
+                type="button" 
+                onClick={() => setEditingFieldService(null)} 
+                className="flex-1 py-3 rounded-xl border border-slate-200 dark:border-slate-700 text-sm font-black text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors"
+              >
+                Cancelar
+              </button>
+              <button 
+                type="submit" 
+                className="flex-1 py-3 rounded-xl bg-emerald-500 text-white text-sm font-black hover:bg-emerald-600 transition-colors shadow-lg shadow-emerald-500/25"
+              >
+                Salvar Alterações
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+    )}
+
+    {editingQuickLink && (
+      <div className="fixed inset-0 bg-black/60 backdrop-blur-md z-[9998] flex items-center justify-center p-4">
+        <div className="w-full max-w-md bg-white dark:bg-slate-900 rounded-[28px] p-6 shadow-2xl animate-scale-up border border-slate-200 dark:border-slate-800 flex flex-col">
+          <div className="flex items-center justify-between pb-4 border-b border-slate-200 dark:border-slate-800 mb-4">
+            <h3 className="text-base font-black text-slate-800 dark:text-slate-100 flex items-center gap-2">
+              <LinkIcon size={18} className="text-indigo-500" /> Editar Link Rápido
+            </h3>
+            <button onClick={() => setEditingQuickLink(null)} className="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200">
+              <X size={20} />
+            </button>
+          </div>
+          <form 
+            onSubmit={async (e) => {
+              e.preventDefault();
+              const success = await updateQuickLink(editingQuickLink.id, {
+                label: e.target.label.value,
+                url: e.target.url.value,
+                icon: e.target.icon.value,
+                color: e.target.color.value
+              });
+              if (success) {
+                showToast('Link rápido atualizado!');
+                setEditingQuickLink(null);
+              } else {
+                showToast('Erro ao atualizar link rápido.', 'error');
+              }
+            }} 
+            className="space-y-4"
+          >
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 block mb-1">Nome do Link</label>
+                <input name="label" type="text" defaultValue={editingQuickLink.label} required className="soft-input" />
+              </div>
+              <div>
+                <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 block mb-1">Ícone</label>
+                <select name="icon" defaultValue={editingQuickLink.icon} required className="soft-select text-sm">
+                  <option value="Globe">Ícone: Globo</option>
+                  <option value="FileBarChart">Ícone: Relatório</option>
+                  <option value="BookOpen">Ícone: Livro</option>
+                  <option value="Video">Ícone: Vídeo</option>
+                  <option value="Link">Ícone: Corrente</option>
+                  <option value="Download">Ícone: Download</option>
+                  <option value="MapPin">Ícone: Local</option>
+                </select>
+              </div>
+            </div>
+            <div>
+              <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 block mb-1">URL (Link)</label>
+              <input name="url" type="url" defaultValue={editingQuickLink.url} required className="soft-input" />
+            </div>
+            <div>
+              <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 block mb-1">Cor Temática</label>
+              <select name="color" defaultValue={editingQuickLink.color} required className="soft-select">
+                <option value="bg-sky-100 text-sky-600 dark:bg-sky-500/20 dark:text-sky-400">Azul</option>
+                <option value="bg-emerald-100 text-emerald-600 dark:bg-emerald-500/20 dark:text-emerald-400">Verde</option>
+                <option value="bg-amber-100 text-amber-600 dark:bg-amber-500/20 dark:text-amber-400">Amarelo</option>
+                <option value="bg-indigo-100 text-indigo-600 dark:bg-indigo-500/20 dark:text-indigo-400">Índigo</option>
+                <option value="bg-rose-100 text-rose-600 dark:bg-rose-500/20 dark:text-rose-400">Vermelho</option>
+                <option value="bg-slate-100 text-slate-600 dark:bg-slate-500/20 dark:text-slate-400">Cinza</option>
+              </select>
+            </div>
+            <div className="flex gap-3 pt-2">
+              <button 
+                type="button" 
+                onClick={() => setEditingQuickLink(null)} 
+                className="flex-1 py-3 rounded-xl border border-slate-200 dark:border-slate-700 text-sm font-black text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors"
+              >
+                Cancelar
+              </button>
+              <button 
+                type="submit" 
+                className="flex-1 py-3 rounded-xl bg-indigo-500 text-white text-sm font-black hover:bg-indigo-600 transition-colors shadow-lg shadow-indigo-500/25"
+              >
+                Salvar Alterações
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+    )}
 
     {/* Toast — substitui alert() */}
     {toast && <AdminToast msg={toast.msg} type={toast.type} onClose={() => setToast(null)} />}

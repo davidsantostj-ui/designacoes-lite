@@ -1,6 +1,7 @@
 import React, { useDeferredValue, useMemo, useState } from 'react';
 import { BellRing, Megaphone, Pin, Search, Trash2 } from 'lucide-react';
 import PageHeader from '../PageHeader';
+import RichTextDisplay from '../RichTextDisplay';
 
 const TAB_OPTIONS = [
   { id: 'NOTIFICATIONS', label: 'Para você', icon: BellRing },
@@ -325,9 +326,7 @@ const NoticesView = ({
                       )}
                     </div>
 
-                    <p className="mt-4 text-sm leading-relaxed text-slate-700 dark:text-slate-200">
-                      {announcement.message}
-                    </p>
+                    <RichTextDisplay content={announcement.message} className="mt-4" />
 
                     <div className="mt-4 flex flex-wrap items-center justify-between gap-3">
                       <span
