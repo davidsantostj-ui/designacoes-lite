@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { useData } from '../context/DataStore';
 import { ShieldAlert, ShieldCheck, Shield, UserPlus, CalendarPlus, FileSpreadsheet, AlertTriangle, Users, MessageSquare, CheckCircle2, Trash2, LayoutDashboard, BookOpen, MapPin, Link as LinkIcon, Plus, Eye, EyeOff, ChevronRight, ArrowLeft, X } from 'lucide-react';
 import { parseCsv, normalizeCsvDate } from '../utils/csvUtils';
+import { buildAssignmentWhatsAppLink } from '../utils/textUtils';
 import { supabase } from '../lib/supabase';
 
 // Toast interno — sem usar alert()
@@ -394,6 +395,96 @@ export default function Admin() {
               onChange={handleCsvUpload} 
               className="hidden" 
             />
+
+            {/* Seção: Designações Recentes */}
+            <div className="space-y-4 pt-6 border-t border-slate-200 dark:border-slate-800">
+              <h3 className="text-sm font-black flex items-center gap-2 text-slate-800 dark:text-slate-100 pl-1">
+                <CalendarPlus size={18} className="text-blue-500"/> Designações Recentes
+              </h3>
+              
+              {assignments.length === 0 ? (
+                <div className="text-center p-6 rounded-2xl bg-white/40 dark:bg-slate-900/40 border border-dashed border-slate-200 dark:border-slate-800">
+                  <p className="text-xs text-slate-400 font-bold">Nenhuma designação criada ainda.</p>
+                </div>
+              ) : (
+                <div className="space-y-2 max-h-[400px] overflow-y-auto pr-1">
+                  {[...assignments]
+                    .sort((a, b) => b.date.localeCompare(a.date))
+                    .slice(0, 15) // últimos 15
+                    .map(assign => {
+                      const user = users.find(u => u.id === assign.user_id);
+                      const formattedDate = assign.date.split('-').reverse().join('/');
+                      
+                      const statusStyles = {
+                        confirmed: 'bg-emerald-50 text-emerald-700 dark:bg-emerald-500/10 dark:text-emerald-400 border border-emerald-100 dark:border-emerald-500/20',
+                        rejected: 'bg-red-50 text-red-700 dark:bg-red-500/10 dark:text-red-400 border border-red-100 dark:border-red-500/20',
+                        pending: 'bg-amber-50 text-amber-700 dark:bg-amber-500/10 dark:text-amber-400 border border-amber-100 dark:border-amber-500/20'
+                      };
+                      
+                      const statusLabels = {
+                        confirmed: 'Confirmado',
+                        rejected: 'Recusado',
+                        pending: 'Pendente'
+                      };
+
+                      const handleWhatsAppSend = () => {
+                        if (!user) return;
+                        const waLink = buildAssignmentWhatsAppLink(
+                          user.phone || '',
+                          user.name,
+                          assign.type,
+                          assign.date
+                        );
+                        window.open(waLink, '_blank');
+                      };
+
+                      return (
+                        <div key={assign.id} className="flex flex-col gap-2 p-4 rounded-[20px] bg-white/40 dark:bg-slate-900/40 border border-slate-200 dark:border-slate-800 transition-all hover:bg-white/60 dark:hover:bg-slate-900/60">
+                          <div className="flex items-start justify-between">
+                            <div className="flex-1 min-w-0">
+                              <div className="flex items-center gap-2 flex-wrap">
+                                <span className="text-[10px] font-black text-slate-500 dark:text-slate-400 bg-slate-100 dark:bg-slate-800 px-2 py-0.5 rounded">
+                                  {formattedDate}
+                                </span>
+                                <span className={`text-[9px] font-black uppercase px-2 py-0.5 rounded ${statusStyles[assign.status] || 'bg-slate-100'}`}>
+                                  {statusLabels[assign.status] || assign.status}
+                                </span>
+                              </div>
+                              <h4 className="text-sm font-black text-slate-800 dark:text-slate-100 mt-1.5 truncate">
+                                {assign.type}
+                              </h4>
+                              <p className="text-xs text-slate-500 dark:text-slate-400 font-medium mt-0.5">
+                                Designado: <span className="font-bold text-slate-700 dark:text-slate-300">{user?.name || 'Desconhecido'}</span>
+                              </p>
+                            </div>
+                            
+                            <div className="flex items-center gap-2 ml-4 shrink-0">
+                              <button
+                                onClick={handleWhatsAppSend}
+                                className="p-2.5 rounded-xl bg-emerald-50 hover:bg-emerald-100 dark:bg-emerald-500/10 dark:hover:bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 transition-colors shadow-sm border border-emerald-100 dark:border-emerald-500/20"
+                                title="Enviar Notificação por WhatsApp"
+                              >
+                                <MessageSquare size={16} className="text-emerald-500" />
+                              </button>
+                              <button
+                                onClick={() => {
+                                  if (confirm('Deseja realmente excluir esta designação?')) {
+                                    deleteAssignment(assign.id);
+                                  }
+                                }}
+                                className="p-2.5 rounded-xl bg-red-50 hover:bg-red-100 dark:bg-red-500/10 dark:hover:bg-red-500/20 text-red-500 dark:text-red-400 transition-colors border border-red-100 dark:border-red-500/20"
+                                title="Excluir Designação"
+                              >
+                                <Trash2 size={16} />
+                              </button>
+                            </div>
+                          </div>
+                        </div>
+                      );
+                    })}
+                </div>
+              )}
+            </div>
           </div>
         )}
 

@@ -103,12 +103,20 @@ const parseLinks = (text) => {
   }));
 };
 
+const buildAssignmentWhatsAppLink = (phone, name, taskType, date) => {
+  const formattedDate = date.split('-').reverse().join('/');
+  const firstName = name ? name.split(' ')[0] : 'Irmão';
+  const message = `Olá, ${firstName}! 🌟\n\nVocê foi designado para a tarefa de *"${taskType}"* na reunião do dia *${formattedDate}*.\n\nPor favor, confirme a designação no aplicativo acessando:\nhttps://designacoes-lite.vercel.app/\n\nMuito obrigado! 🙏`;
+  return buildWhatsAppLink(phone, message);
+};
+
 export {
   escapeHtml,
   sanitizeText,
   fixMojibake,
   normalizePhone,
   buildWhatsAppLink,
+  buildAssignmentWhatsAppLink,
   stripAccents,
   normalizePersonName,
   capitalizeWords,

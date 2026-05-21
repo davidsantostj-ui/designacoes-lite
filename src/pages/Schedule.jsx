@@ -1,6 +1,7 @@
 import React, { useState, useMemo } from 'react';
 import { useData } from '../context/DataStore';
-import { AlertTriangle, CheckCircle2, Clock, ThumbsUp, X, Loader2 } from 'lucide-react';
+import { AlertTriangle, CheckCircle2, Clock, ThumbsUp, X, Loader2, Calendar } from 'lucide-react';
+import { buildIcsContent } from '../utils/icsUtils';
 
 // Toast interno leve
 function Toast({ msg, type, onClose }) {
@@ -51,6 +52,32 @@ export default function Schedule() {
     setLoadingId(null);
     setConfirmModal(null);
     showToast('Ausência informada. O admin foi notificado.', 'warning');
+  };
+
+  // FEAT: Exportar designação para calendário (.ics)
+  const handleExportIcs = (assign) => {
+    try {
+      const formattedDate = assign.date.split('-').reverse().join('/');
+      const icsString = buildIcsContent({
+        title: `Designação: ${assign.type}`,
+        dateStr: assign.date,
+        description: `Você foi designado para a tarefa de "${assign.type}" na reunião do dia ${formattedDate}.`
+      });
+      
+      const blob = new Blob([icsString], { type: 'text/calendar;charset=utf-8' });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.setAttribute('download', `designacao-${assign.date}-${assign.type.toLowerCase().replace(/\s+/g, '-')}.ics`);
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(url);
+      showToast('Calendário exportado! 📅');
+    } catch (err) {
+      console.error('Erro ao exportar calendário:', err);
+      showToast('Erro ao exportar calendário', 'error');
+    }
   };
 
   // Cor e texto do badge de status
@@ -153,28 +180,54 @@ export default function Schedule() {
                   {/* FEAT #2: Botões de ação por status */}
                   {!isRejected && (
                     <div className="mt-4 pt-4 border-t border-slate-100 dark:border-slate-800/50 pl-2 flex gap-2">
-                      {isPending && (
-                        <button
-                          onClick={() => handleConfirm(assign.id)}
-                          disabled={isLoading}
-                          className="flex-1 flex items-center justify-center gap-1.5 bg-emerald-500 hover:bg-emerald-600 disabled:opacity-60 text-white text-[11px] font-black tracking-wide uppercase py-3 rounded-xl transition-all active:scale-95 shadow-md shadow-emerald-500/25"
-                        >
-                          {isLoading ? <Loader2 size={14} className="animate-spin"/> : <ThumbsUp size={14}/>}
-                          Confirmar Presença
-                        </button>
+                      {isPending ? (
+                        <>
+                          <button
+                            onClick={() => handleConfirm(assign.id)}
+                            disabled={isLoading}
+                            className="flex-1 flex items-center justify-center gap-1.5 bg-emerald-500 hover:bg-emerald-600 disabled:opacity-60 text-white text-[11px] font-black tracking-wide uppercase py-3 rounded-xl transition-all active:scale-95 shadow-md shadow-emerald-500/25"
+                          >
+                            {isLoading ? <Loader2 size={14} className="animate-spin"/> : <ThumbsUp size={14}/>}
+                            Confirmar
+                          </button>
+                          
+                          <button
+                            onClick={() => handleExportIcs(assign)}
+                            className="w-12 flex items-center justify-center bg-indigo-50 dark:bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 hover:bg-indigo-100 dark:hover:bg-indigo-500/20 border border-indigo-200/50 dark:border-indigo-500/30 rounded-xl transition-all active:scale-95"
+                            title="Exportar para Calendário"
+                          >
+                            <Calendar size={14} strokeWidth={2.5}/>
+                          </button>
+
+                          <button
+                            onClick={() => setConfirmModal(assign.id)}
+                            disabled={isLoading}
+                            className="w-12 flex items-center justify-center bg-slate-100 dark:bg-slate-800 text-slate-500 hover:bg-red-50 hover:text-red-500 dark:hover:bg-red-500/10 rounded-xl transition-all active:scale-95 disabled:opacity-60"
+                            title="Informar Ausência"
+                          >
+                            {isLoading ? <Loader2 size={14} className="animate-spin"/> : <AlertTriangle size={14} strokeWidth={2.5}/>}
+                          </button>
+                        </>
+                      ) : (
+                        <>
+                          <button
+                            onClick={() => handleExportIcs(assign)}
+                            className="flex-1 flex items-center justify-center gap-1.5 border border-indigo-200 dark:border-indigo-500/30 text-indigo-600 dark:text-indigo-400 hover:bg-indigo-50 dark:hover:bg-indigo-500/10 text-[11px] font-black tracking-wide uppercase py-3 rounded-xl transition-all active:scale-95"
+                          >
+                            <Calendar size={14} strokeWidth={2.5}/>
+                            Adicionar à Agenda
+                          </button>
+
+                          <button
+                            onClick={() => setConfirmModal(assign.id)}
+                            disabled={isLoading}
+                            className="flex-1 flex items-center justify-center gap-1.5 text-[11px] font-black tracking-wide uppercase py-3 rounded-xl transition-all active:scale-95 disabled:opacity-60 text-rose-500 hover:text-white hover:bg-rose-500 px-4 border border-rose-200 dark:border-rose-500/30"
+                          >
+                            {isLoading ? <Loader2 size={14} className="animate-spin"/> : <AlertTriangle size={14} strokeWidth={2.5}/>}
+                            Informar Ausência
+                          </button>
+                        </>
                       )}
-                      <button
-                        onClick={() => setConfirmModal(assign.id)}
-                        disabled={isLoading}
-                        className={`flex items-center justify-center gap-1.5 text-[11px] font-black tracking-wide uppercase py-3 rounded-xl transition-all active:scale-95 disabled:opacity-60 ${
-                          isPending
-                            ? 'w-12 bg-slate-100 dark:bg-slate-800 text-slate-500 hover:bg-red-50 hover:text-red-500 dark:hover:bg-red-500/10'
-                            : 'flex-1 text-rose-500 hover:text-white hover:bg-rose-500 px-4 border border-rose-200 dark:border-rose-500/30'
-                        }`}
-                      >
-                        {isLoading ? <Loader2 size={14} className="animate-spin"/> : <AlertTriangle size={14} strokeWidth={2.5}/>}
-                        {!isPending && 'Informar Ausência'}
-                      </button>
                     </div>
                   )}
                 </div>
