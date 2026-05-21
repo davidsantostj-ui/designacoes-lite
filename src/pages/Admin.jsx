@@ -1,6 +1,8 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useData } from '../context/DataStore';
 import { ShieldAlert, ShieldCheck, Shield, UserPlus, CalendarPlus, FileSpreadsheet, AlertTriangle, Users, MessageSquare, CheckCircle2, Trash2, LayoutDashboard, BookOpen, MapPin, Link as LinkIcon, Plus, Eye, EyeOff, ChevronRight, ArrowLeft, X } from 'lucide-react';
+import { parseCsv, normalizeCsvDate } from '../utils/csvUtils';
+import { supabase } from '../lib/supabase';
 
 // Toast interno — sem usar alert()
 function AdminToast({ msg, type, onClose }) {
@@ -33,7 +35,132 @@ export default function Admin() {
   const [reassignModal, setReassignModal] = useState(null); // { assignId }
   const [reassignUserId, setReassignUserId] = useState('');
 
+  // CSV Import States
+  const [csvPreview, setCsvPreview] = useState(null);
+  const fileInputRef = useRef(null);
+
   const showToast = (msg, type = 'success') => setToast({ msg, type });
+
+  const handleCsvUpload = (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      const text = event.target.result;
+      const { rows } = parseCsv(text);
+      if (!rows || rows.length === 0) {
+        showToast('Nenhum dado encontrado no CSV.', 'error');
+        return;
+      }
+
+      // Map rows to a normalized preview structure
+      const parsedRows = rows.map((row, index) => {
+        const rawName = row.nome || row.principal || row.name || row.user || row.publicador || '';
+        const rawTask = row.tarefa || row.designação || row.designacao || row.type || row.role || '';
+        const rawDate = row.data || row.date || '';
+
+        const name = rawName.trim();
+        const task = rawTask.trim();
+        const date = normalizeCsvDate(rawDate);
+
+        // Find user by name (case-insensitive)
+        const foundUser = users.find(u => u.name.trim().toLowerCase() === name.toLowerCase());
+        
+        // Check if assignment already exists
+        const exists = assignments.some(a => 
+          a.user_id === foundUser?.id && 
+          a.type.toLowerCase() === task.toLowerCase() && 
+          a.date === date
+        );
+
+        return {
+          id: `csv-${index}-${Date.now()}`,
+          name,
+          task,
+          date,
+          userId: foundUser ? foundUser.id : null,
+          exists,
+          isValid: name !== '' && task !== '' && date !== ''
+        };
+      });
+
+      setCsvPreview(parsedRows);
+      showToast(`${parsedRows.length} linhas processadas do CSV.`);
+      e.target.value = ''; // Reset file input
+    };
+    reader.readAsText(file, 'UTF-8');
+  };
+
+  const handleQuickCreateUser = async (name) => {
+    if (!name) return;
+    try {
+      const defaultPin = Math.floor(1000 + Math.random() * 9000).toString(); // Random 4-digit PIN
+      const email = `user_${Date.now()}@app.com`;
+      const newUserObj = {
+        name,
+        email,
+        role: 'user',
+        pin: defaultPin
+      };
+
+      const { data: newUser, error } = await supabase.from('users').insert([newUserObj]).select();
+      
+      if (error) {
+        showToast(`Erro ao criar usuário: ${error.message}`, 'error');
+        return;
+      }
+
+      if (newUser && newUser[0]) {
+        const createdUser = newUser[0];
+        setCsvPreview(prev => prev.map(item => {
+          if (item.name.toLowerCase() === name.toLowerCase()) {
+            return {
+              ...item,
+              userId: createdUser.id
+            };
+          }
+          return item;
+        }));
+
+        showToast(`"${name}" cadastrado com PIN ${defaultPin}!`, 'success');
+      }
+    } catch (err) {
+      console.error(err);
+      showToast('Falha ao cadastrar publicador.', 'error');
+    }
+  };
+
+  const handleConfirmCsvImport = async () => {
+    const rowsToImport = csvPreview.filter(row => row.isValid && row.userId && !row.exists);
+    
+    if (rowsToImport.length === 0) {
+      showToast('Nenhuma designação válida para importar.', 'warning');
+      return;
+    }
+
+    try {
+      const dbRows = rowsToImport.map(row => ({
+        user_id: row.userId,
+        type: row.task,
+        date: row.date,
+        status: 'pending'
+      }));
+
+      const { data, error } = await supabase.from('assignments').insert(dbRows).select();
+      
+      if (error) {
+        showToast(`Erro ao salvar no banco: ${error.message}`, 'error');
+        return;
+      }
+
+      showToast(`${rowsToImport.length} designações importadas com sucesso!`);
+      setCsvPreview(null);
+    } catch (err) {
+      console.error(err);
+      showToast('Erro ao importar designações.', 'error');
+    }
+  };
 
   const rejectedAssignments = assignments.filter(a => a.status === 'rejected');
 
@@ -254,9 +381,19 @@ export default function Admin() {
               </form>
             </div>
 
-            <button onClick={() => alert("Funcionalidade de importação CSV em construção.")} className="w-full rounded-[24px] bg-slate-100/50 dark:bg-slate-800/50 backdrop-blur-sm border border-dashed border-slate-300 dark:border-slate-700 p-5 flex items-center justify-center gap-3 text-sm font-black text-slate-500 hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors">
+            <button 
+              onClick={() => fileInputRef.current?.click()} 
+              className="w-full rounded-[24px] bg-slate-100/50 dark:bg-slate-800/50 backdrop-blur-sm border border-dashed border-slate-300 dark:border-slate-700 p-5 flex items-center justify-center gap-3 text-sm font-black text-slate-500 hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors active:scale-95 transition-all"
+            >
               <FileSpreadsheet size={20} /> Importar em Lote (CSV)
             </button>
+            <input 
+              type="file" 
+              ref={fileInputRef} 
+              accept=".csv" 
+              onChange={handleCsvUpload} 
+              className="hidden" 
+            />
           </div>
         )}
 
@@ -549,6 +686,102 @@ export default function Admin() {
           <div className="flex gap-3">
             <button onClick={() => setReassignModal(null)} className="flex-1 py-3 rounded-xl border border-slate-200 dark:border-slate-700 text-sm font-black text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors">Cancelar</button>
             <button onClick={confirmReassign} className="flex-1 py-3 rounded-xl bg-rose-600 text-white text-sm font-black hover:bg-rose-700 transition-colors shadow-md shadow-rose-500/30">Confirmar</button>
+          </div>
+        </div>
+      </div>
+    )}
+
+    {/* Modal de Prévia de Importação CSV */}
+    {csvPreview && (
+      <div className="fixed inset-0 bg-black/60 backdrop-blur-md z-[9998] flex items-center justify-center p-4">
+        <div className="w-full max-w-2xl bg-white dark:bg-slate-900 rounded-[28px] p-6 shadow-2xl animate-scale-up max-h-[85vh] flex flex-col border border-slate-200 dark:border-slate-800">
+          <div className="flex items-center justify-between pb-4 border-b border-slate-200 dark:border-slate-800">
+            <div>
+              <h3 className="text-lg font-black text-slate-900 dark:text-white">Prévia da Importação</h3>
+              <p className="text-xs text-slate-500 mt-1 font-medium">Valide e resolva membros não cadastrados antes de salvar.</p>
+            </div>
+            <button onClick={() => setCsvPreview(null)} className="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 p-1 rounded-full">
+              <X size={20} />
+            </button>
+          </div>
+
+          <div className="flex-1 overflow-y-auto py-4 space-y-3 pr-1">
+            {csvPreview.map((row) => {
+              const hasUser = !!row.userId;
+              return (
+                <div 
+                  key={row.id} 
+                  className={`flex flex-col md:flex-row md:items-center justify-between p-3.5 rounded-[20px] border transition-all ${
+                    row.exists 
+                      ? 'bg-amber-50/50 border-amber-200 dark:bg-amber-500/5 dark:border-amber-500/20 opacity-80' 
+                      : !hasUser 
+                        ? 'bg-red-50/50 border-red-200 dark:bg-red-500/5 dark:border-red-500/20' 
+                        : 'bg-slate-50/50 border-slate-200 dark:bg-slate-800/40 dark:border-slate-800'
+                  }`}
+                >
+                  <div className="space-y-1">
+                    <div className="flex items-center gap-2">
+                      <span className="text-sm font-black text-slate-800 dark:text-slate-100">
+                        {row.name || <i className="text-slate-400">Nome vazio</i>}
+                      </span>
+                      {row.exists && (
+                        <span className="text-[9px] font-extrabold uppercase px-1.5 py-0.5 rounded bg-amber-100 text-amber-700 dark:bg-amber-500/20 dark:text-amber-400">
+                          Duplicada
+                        </span>
+                      )}
+                      {!hasUser && row.name && (
+                        <span className="text-[9px] font-extrabold uppercase px-1.5 py-0.5 rounded bg-red-100 text-red-700 dark:bg-red-500/20 dark:text-red-400 flex items-center gap-1">
+                          <AlertTriangle size={10} /> Não Cadastrado
+                        </span>
+                      )}
+                    </div>
+                    <div className="flex flex-wrap gap-x-3 gap-y-1 text-xs text-slate-500">
+                      <span>📅 {row.date ? row.date.split('-').reverse().join('/') : <span className="text-red-500">Sem data</span>}</span>
+                      <span>💼 {row.task || <span className="text-red-500">Sem tarefa</span>}</span>
+                    </div>
+                  </div>
+
+                  <div className="mt-2 md:mt-0 flex justify-end">
+                    {!hasUser && row.name ? (
+                      <button 
+                        onClick={() => handleQuickCreateUser(row.name)}
+                        className="flex items-center gap-1 px-3 py-1.5 text-xs font-black text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-500/10 hover:bg-blue-100 dark:hover:bg-blue-500/20 rounded-xl transition-all active:scale-95 border border-blue-200 dark:border-blue-800/50"
+                      >
+                        <UserPlus size={13} /> Cadastrar
+                      </button>
+                    ) : (
+                      <button 
+                        onClick={() => setCsvPreview(prev => prev.filter(r => r.id !== row.id))}
+                        className="text-[11px] font-extrabold uppercase text-slate-400 hover:text-red-500 dark:hover:text-red-400 px-2.5 py-1.5 rounded-lg transition-colors"
+                      >
+                        Remover
+                      </button>
+                    )}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+
+          <div className="pt-4 border-t border-slate-200 dark:border-slate-800 flex flex-col md:flex-row gap-3 items-center justify-between">
+            <div className="text-xs text-slate-500 text-center md:text-left font-medium">
+              Apenas itens válidos, não duplicados e com membros cadastrados serão importados.
+            </div>
+            <div className="flex gap-3 w-full md:w-auto">
+              <button 
+                onClick={() => setCsvPreview(null)} 
+                className="flex-1 md:flex-none px-6 py-3 text-sm font-black text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 transition-colors"
+              >
+                Cancelar
+              </button>
+              <button 
+                onClick={handleConfirmCsvImport}
+                disabled={csvPreview.filter(row => row.isValid && row.userId && !row.exists).length === 0}
+                className="flex-1 md:flex-none px-6 py-3 text-sm font-black text-white bg-blue-600 hover:bg-blue-700 disabled:opacity-50 disabled:pointer-events-none rounded-xl transition-colors shadow-lg shadow-blue-500/25 flex items-center justify-center gap-1.5"
+              >
+                <CheckCircle2 size={16} /> Importar {csvPreview.filter(row => row.isValid && row.userId && !row.exists).length} itens
+              </button>
+            </div>
           </div>
         </div>
       </div>

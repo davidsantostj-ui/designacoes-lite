@@ -24,11 +24,10 @@ export const DataProvider = ({ children }) => {
   const [loading, setLoading] = useState(true);
   const [currentUser, setCurrentUser] = useState(null);
 
-  // Busca todos os dados do Supabase ao iniciar
-  useEffect(() => {
-    async function fetchAllData() {
-      setLoading(true);
-
+  // Função global de sincronização e busca
+  const fetchAllData = async (showLoadingState = true) => {
+    if (showLoadingState) setLoading(true);
+    try {
       // 1. Fetch Users
       let { data: usersData, error: uErr } = await supabase.from('users').select('*');
       
@@ -47,7 +46,6 @@ export const DataProvider = ({ children }) => {
         ]);
         if (seedErr) {
           console.error('[DataStore] Erro no auto-seed:', seedErr.message, seedErr);
-          console.error('[DataStore] DICA: Execute o arquivo update_database.sql no SQL Editor do Supabase para criar a coluna pin e o usuário admin.');
         }
         const res = await supabase.from('users').select('*');
         usersData = res.data;
@@ -84,9 +82,17 @@ export const DataProvider = ({ children }) => {
       const { data: tipsData } = await supabase.from('tips').select('*');
       setTips(tipsData || []);
 
-      // 5. Fetch Field Service
+      // 5. Fetch Field Service (mapeando day_of_week para dayOfWeek)
       const { data: fieldData } = await supabase.from('field_service').select('*');
-      setFieldService(fieldData || []);
+      const mappedFieldData = (fieldData || []).map(f => ({
+        id: f.id,
+        dayOfWeek: f.day_of_week || f.dayOfWeek || '',
+        time: f.time,
+        type: f.type,
+        location_or_link: f.location_or_link,
+        conductor: f.conductor
+      }));
+      setFieldService(mappedFieldData);
 
       // 6. Fetch Quick Links
       let { data: linksData, error: lErr } = await supabase.from('quick_links').select('*');
@@ -101,11 +107,16 @@ export const DataProvider = ({ children }) => {
         linksData = resL.data;
       }
       setQuickLinks(linksData || []);
-
-      setLoading(false);
+    } catch (e) {
+      console.error('[DataStore] Erro geral ao recarregar:', e);
+    } finally {
+      if (showLoadingState) setLoading(false);
     }
-    
-    fetchAllData();
+  };
+
+  // Busca todos os dados do Supabase ao iniciar
+  useEffect(() => {
+    fetchAllData(true);
   }, []);
 
   // ===== FEAT #7: SUPABASE REALTIME =====
@@ -244,12 +255,44 @@ export const DataProvider = ({ children }) => {
 
   // ===== CRUD FIELD SERVICE =====
   const createFieldService = async (data) => {
-    const { data: newField, error } = await supabase.from('field_service').insert([data]).select();
-    if (!error && newField) setFieldService(prev => [...prev, newField[0]]);
+    // Mapeamento de camelCase para snake_case do Postgres/Supabase
+    const dbData = {
+      day_of_week: data.dayOfWeek,
+      time: data.time,
+      type: data.type,
+      location_or_link: data.location_or_link,
+      conductor: data.conductor
+    };
+    const { data: newField, error } = await supabase.from('field_service').insert([dbData]).select();
+    if (!error && newField) {
+      // Mapeamento de volta para o frontend
+      const mapped = {
+        id: newField[0].id,
+        dayOfWeek: newField[0].day_of_week,
+        time: newField[0].time,
+        type: newField[0].type,
+        location_or_link: newField[0].location_or_link,
+        conductor: newField[0].conductor
+      };
+      setFieldService(prev => [...prev, mapped]);
+    }
   };
   const deleteFieldService = async (id) => {
     const { error } = await supabase.from('field_service').delete().eq('id', id);
     if (!error) setFieldService(prev => prev.filter(f => f.id !== id));
+  };
+
+  // ===== UPDATE PROFILE =====
+  const updateUserProfile = async (id, profileData) => {
+    const { error } = await supabase.from('users').update(profileData).eq('id', id);
+    if (!error) {
+      setUsers(prev => prev.map(u => u.id === id ? { ...u, ...profileData } : u));
+      if (currentUser?.id === id) {
+        setCurrentUser(prev => prev ? { ...prev, ...profileData } : null);
+      }
+      return true;
+    }
+    return false;
   };
 
   // ===== CRUD QUICK LINKS =====
@@ -267,12 +310,13 @@ export const DataProvider = ({ children }) => {
   const value = {
     users, assignments, meetings, notices, tips, fieldService, quickLinks, currentUser, isDarkMode, loading,
     createAssignment, updateAssignmentStatus, deleteAssignment, reassignTask,
-    createUser, deleteUser, updateUserRole,
+    createUser, deleteUser, updateUserRole, updateUserProfile,
     createNotice, deleteNotice,
     createTip, deleteTip, toggleTipActive,
     createFieldService, deleteFieldService,
     createQuickLink, deleteQuickLink,
-    toggleDarkMode, login, logout
+    toggleDarkMode, login, logout,
+    refreshData: () => fetchAllData(false)
   };
 
   return (
