@@ -93,6 +93,16 @@ const getUserDisplayName = (u) => {
   return byEmail || u.email || 'Usuário';
 };
 
+const parseLinks = (text) => {
+  if (!text) return [];
+  const urlRegex = /(https?:\/\/[^\s]+)/g;
+  const parts = text.split(urlRegex);
+  return parts.map((part) => ({
+    text: part,
+    isLink: !!part.match(urlRegex)
+  }));
+};
+
 export {
   escapeHtml,
   sanitizeText,
@@ -103,5 +113,6 @@ export {
   normalizePersonName,
   capitalizeWords,
   deriveNameFromEmail,
-  getUserDisplayName
+  getUserDisplayName,
+  parseLinks
 };

@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useData } from '../../context/DataStore';
 import { Info, Star, Clock } from 'lucide-react';
+import { parseLinks } from '../../utils/textUtils';
 
 // Subcomponente isolado para não re-renderizar a lista inteira a cada segundo
 const Countdown = ({ targetDate }) => {
@@ -68,7 +69,21 @@ export default function NoticeBoard() {
         
         <h4 className="text-base font-black text-slate-800 dark:text-slate-100 pr-8 pl-2">{topNotice.title}</h4>
         <p className="text-sm text-slate-500 dark:text-slate-400 mt-2 leading-relaxed font-medium pl-2">
-          {topNotice.content}
+          {parseLinks(topNotice.content).map((chunk, index) => 
+            chunk.isLink ? (
+              <a 
+                key={index} 
+                href={chunk.text} 
+                target="_blank" 
+                rel="noreferrer" 
+                className="text-blue-600 dark:text-blue-400 hover:underline break-all font-bold"
+              >
+                {chunk.text}
+              </a>
+            ) : (
+              chunk.text
+            )
+          )}
         </p>
         
         <div className="mt-4 flex items-center justify-between pl-2">

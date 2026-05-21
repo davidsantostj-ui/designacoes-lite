@@ -2,6 +2,7 @@ import React from 'react';
 import { useData } from '../context/DataStore';
 import { ArrowLeft, BookOpen, CheckCircle2 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import { parseLinks } from '../utils/textUtils';
 
 export default function Activities() {
   const { tips } = useData();
@@ -47,7 +48,21 @@ export default function Activities() {
                 <div>
                   <h4 className="text-base font-black text-slate-800 dark:text-slate-100">{tip.title}</h4>
                   <p className="text-sm text-slate-500 dark:text-slate-400 mt-1 leading-relaxed font-medium">
-                    {tip.content}
+                    {parseLinks(tip.content).map((chunk, index) => 
+                      chunk.isLink ? (
+                        <a 
+                          key={index} 
+                          href={chunk.text} 
+                          target="_blank" 
+                          rel="noreferrer" 
+                          className="text-blue-600 dark:text-blue-400 hover:underline break-all font-bold"
+                        >
+                          {chunk.text}
+                        </a>
+                      ) : (
+                        chunk.text
+                      )
+                    )}
                   </p>
                   
                   {tip.active && (
